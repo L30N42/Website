@@ -34,7 +34,10 @@
   </script>
 
   <style>
-    * { box-sizing: border-box; user-select: none; }
+    * { 
+      box-sizing: border-box; 
+      user-select: none;
+    }
     
     html, body {
       width: 100%; height: 100%;
@@ -45,7 +48,7 @@
     }
 
     body {
-      background: radial-gradient(circle at 75% 25%, #0e274d 0%, #061124 60%, #020712 100%);
+      background: #061124;
       font-family: 'Inter', sans-serif;
       color: #fff;
     }
@@ -56,161 +59,118 @@
       outline-offset: 3px;
     }
 
-    /* Animasi Mandala */
+    /* Mandala - Diringankan menggunakan hardware acceleration */
     .mandala-container {
       position: absolute;
       top: -50%; left: -50%;
       width: 200%; height: 200%;
       background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23ffffff' stroke-width='1.5' opacity='0.5'%3E%3Cpath d='M60 0 v120 M0 60 h120 M18 18 l84 84 M102 18 l-84 84' /%3E%3Crect x='30' y='30' width='60' height='60' transform='rotate(45 60 60)' /%3E%3Crect x='30' y='30' width='60' height='60' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      opacity: 0.035;
-      animation: rotate-mandala 180s linear infinite;
+      opacity: 0.03;
+      will-change: transform;
+      animation: rotate-mandala 240s linear infinite;
       z-index: 0;
     }
     @keyframes rotate-mandala {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% { transform: rotate(0deg) translateZ(0); }
+      100% { transform: rotate(360deg) translateZ(0); }
     }
 
-    /* Bintang Berkelap-kelip */
+    /* Bintang Diringankan */
     .star {
       position: absolute;
       background: #ffffff;
       border-radius: 50%;
-      animation: twinkle var(--duration) ease-in-out infinite alternate;
-      box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
-    }
-    @keyframes twinkle {
-      0% { opacity: 0.1; transform: scale(0.4); }
-      100% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px rgba(255,255,255,1); }
+      opacity: 0.6;
     }
 
-    /* Ambient Moon Pulse */
+    /* Crescent Moon Static */
     .crescent-moon {
       position: absolute;
       top: 45px;
       left: 45%;
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
-      box-shadow: -15px 12px 0 2px #fff8db;
-      opacity: 0.9;
+      box-shadow: -12px 10px 0 2px #fff8db;
+      opacity: 0.85;
       z-index: 1;
-      animation: glow-pulse-moon 3.5s ease-in-out infinite alternate;
-    }
-    @keyframes glow-pulse-moon {
-      0% { filter: drop-shadow(0 0 10px rgba(255, 248, 219, 0.3)); transform: rotate(-25deg) scale(1); }
-      100% { filter: drop-shadow(0 0 30px rgba(255, 248, 219, 0.8)); transform: rotate(-25deg) scale(1.03); }
+      filter: drop-shadow(0 0 15px rgba(255, 248, 219, 0.4));
     }
 
-    /* Lentera Artistik */
+    /* Lentera Simple */
     .lantern {
       position: absolute;
       top: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      transform-origin: top center;
       z-index: 1;
-      animation: swing var(--swing-dur) ease-in-out infinite alternate;
     }
-    .lantern-chain {
-      width: 2px;
-      background: linear-gradient(to bottom, #d4af37, #aa8010);
-    }
+    .lantern-chain { width: 2px; background: #d4af37; }
     .lantern-cap {
-      background: linear-gradient(to right, #aa8010, #ffdf00, #aa8010);
+      background: #aa8010;
       clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-      border-radius: 2px 2px 0 0;
     }
     .lantern-glass {
-      background: rgba(255, 215, 0, 0.15);
+      background: rgba(255, 215, 0, 0.25);
       border-left: 2px solid #d4af37;
       border-right: 2px solid #d4af37;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      animation: lantern-glow var(--glow-dur) ease-in-out infinite alternate;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
     }
     .lantern-flame {
-      width: 12px;
-      height: 18px;
-      background: radial-gradient(ellipse at bottom, #fff 10%, #ffc82c 50%, transparent 80%);
-      border-radius: 50% 50% 20% 20%;
-      animation: flicker 0.6s infinite alternate;
-      filter: drop-shadow(0 0 8px #ffc82c);
+      width: 10px; height: 14px;
+      background: #ffc82c;
+      border-radius: 50%;
     }
     .lantern-base {
-      background: linear-gradient(to right, #aa8010, #ffdf00, #aa8010);
+      background: #aa8010;
       clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
-      border-radius: 0 0 2px 2px;
-      border-top: 2px solid #8a6a0b;
     }
 
-    @keyframes swing {
-      0% { transform: rotate(-3deg); }
-      100% { transform: rotate(3deg); }
-    }
-    @keyframes lantern-glow {
-      0% { box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.2), 0 0 15px rgba(255, 215, 0, 0.4); }
-      100% { box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.5), 0 0 45px rgba(255, 215, 0, 0.95); }
-    }
-    @keyframes flicker {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      100% { transform: scale(1.05); opacity: 1; }
-    }
-
-    .lantern-1 { left: 54%; --swing-dur: 4.8s; --glow-dur: 2.3s; }
+    .lantern-1 { left: 54%; }
     .lantern-1 .lantern-chain { height: 60px; }
-    .lantern-1 .lantern-cap { width: 28px; height: 14px; }
-    .lantern-1 .lantern-glass { width: 36px; height: 45px; clip-path: polygon(10% 0, 90% 0, 100% 100%, 0 100%); }
-    .lantern-1 .lantern-base { width: 34px; height: 12px; }
+    .lantern-1 .lantern-cap { width: 26px; height: 12px; }
+    .lantern-1 .lantern-glass { width: 32px; height: 40px; }
+    .lantern-1 .lantern-base { width: 30px; height: 10px; }
 
-    .lantern-2 { left: 74%; --swing-dur: 3.8s; --glow-dur: 2.7s; }
+    .lantern-2 { left: 74%; }
     .lantern-2 .lantern-chain { height: 90px; }
-    .lantern-2 .lantern-cap { width: 36px; height: 18px; }
-    .lantern-2 .lantern-glass { width: 44px; height: 55px; clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%); }
-    .lantern-2 .lantern-base { width: 42px; height: 14px; }
+    .lantern-2 .lantern-cap { width: 32px; height: 15px; }
+    .lantern-2 .lantern-glass { width: 40px; height: 48px; }
+    .lantern-2 .lantern-base { width: 38px; height: 12px; }
 
-    /* Animasi Pendaran Ikon Masjid */
-    .animate-pulse-icon {
-      animation: pulse-icon 2s ease-in-out infinite alternate;
-    }
-    @keyframes pulse-icon {
-      0% { filter: drop-shadow(0 0 8px rgba(255, 200, 44, 0.5)); transform: scale(1); }
-      100% { filter: drop-shadow(0 0 25px rgba(255, 200, 44, 1)); transform: scale(1.08); }
-    }
-
-    /* Marquee */
+    /* Marquee Ringan */
     .marquee-container {
       overflow: hidden; white-space: nowrap;
     }
     .marquee-content {
       display: inline-block; white-space: nowrap;
       padding-left: 100%;
-      animation: marquee-anim 28s linear infinite;
+      will-change: transform;
+      animation: marquee-anim 32s linear infinite;
     }
     @keyframes marquee-anim {
       0% { transform: translate3d(0, 0, 0); }
       100% { transform: translate3d(-100%, 0, 0); }
     }
 
+    /* Card Tanpa Blur (Sangat Ringan di Smart TV) */
     .glass-card {
-      background: rgba(13, 31, 60, 0.4);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(13, 31, 60, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #051329; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb { background: #28446b; border-radius: 4px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #051329; }
+    ::-webkit-scrollbar-thumb { background: #28446b; border-radius: 3px; }
   </style>
 </head>
 <body class="flex flex-col justify-between relative">
 
-  <!-- AUDIO PLAYER -->
+  <!-- AUDIO PLAYER DENGAN LINK DEFAULT BERSIH -->
   <audio id="lebaran-audio" loop preload="auto">
-    <source id="audio-source" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3" type="audio/mpeg">
+    <source id="audio-source" src="https://strict-maroon-gl7sswod.edgeone.dev/" type="audio/mpeg">
   </audio>
 
   <div class="mandala-container pointer-events-none"></div>
@@ -229,12 +189,12 @@
   </div>
 
   <!-- KONTROL MUSIK DAN SETTINGS -->
-  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
-    <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
+  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-90 hover:opacity-100">
+    <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-3 py-2 bg-[#0d223f] border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
       <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
       <span id="audio-text">Musik Off</span>
     </button>
-    <button id="btn-open-settings" tabindex="0" onclick="openSettingsModal()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
+    <button id="btn-open-settings" tabindex="0" onclick="openSettingsModal()" class="px-3 py-2 bg-[#0d223f] border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
       <i class="fa-solid fa-gear"></i> Settings
     </button>
   </div>
@@ -246,7 +206,7 @@
       
       <div>
         <div class="flex items-center gap-4 mb-1">
-          <i class="fa-solid fa-mosque text-3xl sm:text-4xl 2xl:text-5xl text-masjid-gold animate-pulse-icon shrink-0"></i>
+          <i class="fa-solid fa-mosque text-3xl sm:text-4xl 2xl:text-5xl text-masjid-gold shrink-0"></i>
           <div class="min-w-0">
             <h1 id="disp-mosque-name" class="font-display text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-black tracking-wider uppercase text-white drop-shadow-md leading-none whitespace-nowrap overflow-hidden text-ellipsis">MUSHOLA AL-MUHAJIRIN</h1>
             <p id="disp-mosque-address" class="text-blue-200 text-xs 2xl:text-sm mt-1 truncate">Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224</p>
@@ -259,7 +219,7 @@
       </div>
 
       <div class="my-auto">
-        <div id="main-digital-clock" class="font-display text-[5.5rem] 2xl:text-[7.5rem] leading-none tracking-widest text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.35)]">
+        <div id="main-digital-clock" class="font-display text-[5.5rem] 2xl:text-[7.5rem] leading-none tracking-widest text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
           00:00:00
         </div>
         <div id="countdown-label" class="text-masjid-gold text-xl 2xl:text-2xl font-bold tracking-widest uppercase mt-2 drop-shadow-md">
@@ -271,11 +231,11 @@
         
         <!-- Area Badge Imam -->
         <div class="flex flex-col gap-1.5 2xl:gap-2">
-          <div class="inline-flex items-center w-fit bg-[#0a1b34]/85 border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm backdrop-blur-sm shadow-[0_0_15px_rgba(255,200,44,0.15)]">
+          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-dzuhur">IMAM DZUHUR: Memuat...</span>
           </div>
-          <div class="inline-flex items-center w-fit bg-[#0a1b34]/85 border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm backdrop-blur-sm shadow-[0_0_15px_rgba(255,200,44,0.15)]">
+          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-ashar">IMAM ASHAR: Memuat...</span>
           </div>
@@ -291,8 +251,8 @@
           </div>
         </div>
 
-        <div class="inline-flex items-center gap-3 bg-[#08162c]/80 border border-white/10 rounded-lg px-3 py-1.5 2xl:px-4 2xl:py-2 text-blue-100 font-bold tracking-wide text-xs 2xl:text-sm backdrop-blur-md">
-          <i class="fa-solid fa-moon text-masjid-gold animate-pulse"></i>
+        <div class="inline-flex items-center gap-3 bg-[#08162c] border border-white/10 rounded-lg px-3 py-1.5 2xl:px-4 2xl:py-2 text-blue-100 font-bold tracking-wide text-xs 2xl:text-sm">
+          <i class="fa-solid fa-moon text-masjid-gold"></i>
           <span id="ramadhan-countdown-text">... HARI MENUJU BULAN RAMADHAN 1448 H</span>
         </div>
       </div>
@@ -301,31 +261,31 @@
 
     <!-- RIGHT PANEL (Prayer Times) -->
     <div class="col-span-5 flex flex-col justify-evenly h-full pl-4 2xl:pl-6 pb-2">
-      <div id="item-imsak" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-imsak" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-moon text-blue-300 w-6 text-center"></i> Imsak</div>
         <div id="time-imsak" class="font-display text-2xl 2xl:text-3xl font-black text-white">04:36</div>
       </div>
-      <div id="item-subuh" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-subuh" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-6 text-center"></i> Subuh</div>
         <div id="time-subuh" class="font-display text-2xl 2xl:text-3xl font-black text-white">04:46</div>
       </div>
-      <div id="item-syuruk" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-syuruk" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-regular fa-sun text-blue-300 w-6 text-center"></i> Syuruq</div>
         <div id="time-syuruk" class="font-display text-2xl 2xl:text-3xl font-black text-white">05:57</div>
       </div>
-      <div id="item-dzuhur" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-dzuhur" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-6 text-center"></i> Dzuhur</div>
         <div id="time-dzuhur" class="font-display text-2xl 2xl:text-3xl font-black text-white">12:07</div>
       </div>
-      <div id="item-ashar" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-ashar" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-sun text-blue-300 w-6 text-center"></i> Ashar</div>
         <div id="time-ashar" class="font-display text-2xl 2xl:text-3xl font-black text-white">15:10</div>
       </div>
-      <div id="item-maghrib" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-maghrib" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-moon text-blue-300 w-6 text-center"></i> Maghrib</div>
         <div id="time-maghrib" class="font-display text-2xl 2xl:text-3xl font-black text-white">18:10</div>
       </div>
-      <div id="item-isya" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all backdrop-blur-sm">
+      <div id="item-isya" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
         <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-star-and-crescent text-blue-300 w-6 text-center"></i> Isya</div>
         <div id="time-isya" class="font-display text-2xl 2xl:text-3xl font-black text-white">19:18</div>
       </div>
@@ -345,7 +305,7 @@
   </footer>
 
   <!-- SETTINGS MODAL -->
-  <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/85 hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/90 hidden items-center justify-center p-4">
     <div class="bg-masjid-dark border border-masjid-gold rounded-xl w-full max-w-2xl p-6 shadow-2xl">
       <div class="flex justify-between items-center mb-5">
         <h3 class="text-xl font-bold text-masjid-gold">Pengaturan Signage</h3>
@@ -376,15 +336,10 @@
         <!-- PENGATURAN MUSIK -->
         <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg space-y-3">
           <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-music mr-1"></i> Pengaturan Musik / Audio</label>
-          
-          <div>
-            <label class="block text-xs text-blue-200 mb-1">Upload File MP3</label>
-            <input id="input-audio-file" type="file" accept="audio/*" onchange="handleAudioUpload(event)" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-1.5 text-xs text-white file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-masjid-gold file:text-black hover:file:bg-yellow-400">
-          </div>
 
           <div>
-            <label class="block text-xs text-blue-200 mb-1">Atau Gunakan Link URL Musik (.mp3)</label>
-            <input id="input-audio-url" type="text" placeholder="https://domain.com/lagu.mp3" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
+            <label class="block text-xs text-blue-200 mb-1">Link URL Musik (.mp3)</label>
+            <input id="input-audio-url" type="text" placeholder="https://strict-maroon-gl7sswod.edgeone.dev/" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
           </div>
 
           <div>
@@ -428,28 +383,30 @@
   </div>
 
   <script>
+    // Bintang dikurangi jadi 25 agar sangat ringan di Smart TV
     function createStars() {
       const container = document.getElementById('stars-container');
-      const starCount = 80;
+      const starCount = 25;
       for (let i = 0; i < starCount; i++) {
         let star = document.createElement('div');
         star.className = 'star';
-        let size = Math.random() * 3.5;
+        let size = Math.random() * 2 + 1;
         star.style.width = `${size}px`;
         star.style.height = `${size}px`;
         star.style.left = `${Math.random() * 100}%`;
         star.style.top = `${Math.random() * 100}%`;
-        star.style.setProperty('--duration', `${(Math.random() * 3) + 1.5}s`);
-        star.style.animationDelay = `${Math.random() * 5}s`;
         container.appendChild(star);
       }
     }
+
+    // LINK MUSIK DEFAULT DI-SET KE UTAMA
+    const DEFAULT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
 
     const appConfig = {
       cityId: "0401", 
       mosqueName: "MUSHOLA AL-MUHAJIRIN",
       address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
-      audioUrl: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3",
+      audioUrl: DEFAULT_AUDIO_URL,
       audioVolume: 0.5,
       imamSchedules: [],
       eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
@@ -463,7 +420,6 @@
     };
 
     let isAudioPlaying = false;
-    let tempUploadedAudio = null;
 
     function toggleAudio() {
       const audio = document.getElementById('lebaran-audio');
@@ -481,23 +437,13 @@
         
         if (playPromise !== undefined) {
           playPromise.then(() => {
-            icon.className = 'fa-solid fa-volume-high text-masjid-gold animate-bounce';
+            icon.className = 'fa-solid fa-volume-high text-masjid-gold';
             text.innerText = 'Musik On';
             isAudioPlaying = true;
           }).catch(() => {
-            // Tanpa alert() agar tidak memicu 'Popup Dialog Blocked' di TV
-            text.innerText = 'Error Audio';
+            text.innerText = 'Gagal Play';
           });
         }
-      }
-    }
-
-    function handleAudioUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const objectUrl = URL.createObjectURL(file);
-        tempUploadedAudio = objectUrl;
-        document.getElementById('input-audio-url').value = file.name;
       }
     }
 
@@ -508,9 +454,12 @@
     }
 
     function loadSavedConfig() {
-      const saved = localStorage.getItem('mosque_config_v9');
+      const saved = localStorage.getItem('mosque_config_v10');
       if (saved) {
         try { Object.assign(appConfig, JSON.parse(saved)); } catch (e) {}
+      }
+      if (!appConfig.audioUrl) {
+        appConfig.audioUrl = DEFAULT_AUDIO_URL;
       }
       renderDOMConfig();
     }
@@ -524,10 +473,9 @@
       document.getElementById('disp-marquee-text').innerText = appConfig.marqueeText;
       
       const audio = document.getElementById('lebaran-audio');
-      if (audio && appConfig.audioUrl) {
-        audio.src = appConfig.audioUrl;
+      if (audio) {
+        audio.src = appConfig.audioUrl || DEFAULT_AUDIO_URL;
         audio.volume = appConfig.audioVolume || 0.5;
-        audio.load();
       }
 
       for (let key in appConfig.prayerTimes) {
@@ -625,17 +573,13 @@
           'Ramadhan', 'Syawal', 'Zulkaidah', 'Zulhijah'
         ];
 
-        const hijriOffset = 0; 
-        const hijriDate = new Date(now);
-        hijriDate.setDate(hijriDate.getDate() + hijriOffset);
-
         const formatter = new Intl.DateTimeFormat('id-TN-u-ca-islamic', { 
           day: 'numeric', 
           month: 'numeric', 
           year: 'numeric' 
         });
         
-        const parts = formatter.formatToParts(hijriDate);
+        const parts = formatter.formatToParts(now);
         let hDay = parts.find(p => p.type === 'day')?.value;
         let hMonthIdx = parseInt(parts.find(p => p.type === 'month')?.value, 10) - 1;
         let hYear = parts.find(p => p.type === 'year')?.value;
@@ -730,12 +674,12 @@
         if (!rowEl) return;
         
         if (p.key === nextPrayer.key) {
-          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-masjid-gold text-black shadow-[0_0_30px_rgba(255,200,44,0.7)] transition-all scale-[1.03] border-none font-bold z-10';
+          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-masjid-gold text-black shadow-lg transition-all scale-[1.02] border-none font-bold z-10';
           rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-black';
           rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-blue-300', 'text-black');
           rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-black';
         } else {
-          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/65 border border-white/10 transition-all scale-100 backdrop-blur-sm z-0';
+          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all scale-100 z-0';
           rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white';
           if (!rowEl.querySelector('i').className.includes('text-blue-300')) {
              rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-black', 'text-blue-300');
@@ -749,7 +693,7 @@
       document.getElementById('input-city-id').value = appConfig.cityId;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
       document.getElementById('input-mosque-address').value = appConfig.address;
-      document.getElementById('input-audio-url').value = appConfig.audioUrl || '';
+      document.getElementById('input-audio-url').value = appConfig.audioUrl || DEFAULT_AUDIO_URL;
       document.getElementById('input-audio-volume').value = appConfig.audioVolume || 0.5;
       document.getElementById('volume-val-text').innerText = Math.round((appConfig.audioVolume || 0.5) * 100) + '%';
       
@@ -778,13 +722,7 @@
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
-      
-      if (tempUploadedAudio) {
-        appConfig.audioUrl = tempUploadedAudio;
-      } else {
-        appConfig.audioUrl = document.getElementById('input-audio-url').value.trim();
-      }
-
+      appConfig.audioUrl = document.getElementById('input-audio-url').value.trim() || DEFAULT_AUDIO_URL;
       appConfig.audioVolume = parseFloat(document.getElementById('input-audio-volume').value);
       
       const newSchedules = [];
@@ -811,7 +749,7 @@
         fetchMyQuranAPI(appConfig.cityId);
       }
 
-      localStorage.setItem('mosque_config_v9', JSON.stringify(appConfig));
+      localStorage.setItem('mosque_config_v10', JSON.stringify(appConfig));
       renderDOMConfig();
       updateClocks(); 
       closeSettingsModal();
