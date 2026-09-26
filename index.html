@@ -202,6 +202,12 @@
 </head>
 <body class="flex flex-col justify-between relative">
 
+  <!-- AUDIO PLAYER LEBARAN AMBIENT -->
+  <audio id="lebaran-audio" loop preload="auto">
+    <!-- Menggunakan Audio Instrumen Arab/Lebaran Bebas Hak Cipta -->
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3" type="audio/mpeg">
+  </audio>
+
   <div class="mandala-container pointer-events-none"></div>
   <div id="stars-container" class="absolute inset-0 pointer-events-none z-0"></div>
   <div class="crescent-moon pointer-events-none"></div>
@@ -217,7 +223,12 @@
     <div class="lantern-base"></div>
   </div>
 
-  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity">
+  <!-- KONTROL MUSIK DAN SETTINGS -->
+  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+    <button id="btn-audio-toggle" onclick="toggleAudio()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2">
+      <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
+      <span id="audio-text">Musik Off</span>
+    </button>
     <button onclick="openSettingsModal()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2">
       <i class="fa-solid fa-gear"></i> Settings
     </button>
@@ -232,7 +243,6 @@
         <div class="flex items-center gap-4 mb-1">
           <i class="fa-solid fa-mosque text-3xl sm:text-4xl 2xl:text-5xl text-masjid-gold animate-pulse-icon shrink-0"></i>
           <div class="min-w-0">
-            <!-- Penyesuaian font dan whitespace agar judul tetap sejajar di Smart TV -->
             <h1 id="disp-mosque-name" class="font-display text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-black tracking-wider uppercase text-white drop-shadow-md leading-none whitespace-nowrap overflow-hidden text-ellipsis">MUSHOLA AL-MUHAJIRIN</h1>
             <p id="disp-mosque-address" class="text-blue-200 text-xs 2xl:text-sm mt-1 truncate">Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224</p>
           </div>
@@ -256,12 +266,10 @@
         
         <!-- Area Badge Imam (Tampil Permanen Harian) -->
         <div class="flex flex-col gap-1.5 2xl:gap-2">
-          <!-- Badge Imam Dzuhur -->
           <div class="inline-flex items-center w-fit bg-[#0a1b34]/85 border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm backdrop-blur-sm shadow-[0_0_15px_rgba(255,200,44,0.15)]">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-dzuhur">IMAM DZUHUR: Memuat...</span>
           </div>
-          <!-- Badge Imam Ashar (dan Hadits jika ada) -->
           <div class="inline-flex items-center w-fit bg-[#0a1b34]/85 border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm backdrop-blur-sm shadow-[0_0_15px_rgba(255,200,44,0.15)]">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-ashar">IMAM ASHAR: Memuat...</span>
@@ -326,7 +334,7 @@
     </div>
     <div class="flex-1 marquee-container flex items-center bg-transparent">
       <div id="disp-marquee-text" class="marquee-content font-bold tracking-wide text-white text-sm 2xl:text-base uppercase">
-        SHOLAT KARENA ALLAH SWT. | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.
+        SHOLAT KARENA ALLAH SWT. | SELAMAT HARI RAYA IDUL FITRI MUBARAK | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.
       </div>
     </div>
   </footer>
@@ -359,6 +367,12 @@
           <label class="block text-sm text-blue-200 mb-1">Alamat Mushola</label>
           <input id="input-mosque-address" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
         </div>
+
+        <div>
+          <label class="block text-sm text-blue-200 mb-1">Link Musik Background (.mp3)</label>
+          <input id="input-audio-url" type="text" placeholder="https://domain.com/lagu-lebaran.mp3" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
+          <p class="text-[10px] text-gray-400 mt-1">Kamu bisa memasukkan URL file MP3 lagu Lebaran pilihanmu di sini.</p>
+        </div>
         
         <!-- PENGATURAN JADWAL IMAM & HADITS BERBASIS TANGGAL -->
         <div class="p-4 bg-[#06152a] border border-[#28446b] rounded-lg">
@@ -367,10 +381,7 @@
             <button onclick="addImamRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
           </div>
 
-          <!-- Container Baris Jadwal -->
-          <div id="imam-schedule-container" class="max-h-[30vh] overflow-y-auto pr-2">
-             <!-- Baris jadwal akan di-generate oleh Javascript disini -->
-          </div>
+          <div id="imam-schedule-container" class="max-h-[30vh] overflow-y-auto pr-2"></div>
         </div>
 
         <div>
@@ -416,19 +427,43 @@
       cityId: "0401", 
       mosqueName: "MUSHOLA AL-MUHAJIRIN",
       address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
+      audioUrl: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3",
       imamSchedules: [],
       eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
       eventTime: "Kajian Ba'Da Ashar",
       eventSpeaker: "Ust. Rosyid Marzuki",
-      marqueeText: "SHOLAT KARENA ALLAH SWT. | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.",
+      marqueeText: "SHOLAT KARENA ALLAH SWT. | SELAMAT HARI RAYA IDUL FITRI MUBARAK | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.",
       prayerTimes: {
         imsak: "04:36", subuh: "04:46", syuruk: "05:57",
         dzuhur: "12:07", ashar: "15:10", maghrib: "18:10", isya: "19:18"
       }
     };
 
+    let isAudioPlaying = false;
+
+    function toggleAudio() {
+      const audio = document.getElementById('lebaran-audio');
+      const icon = document.getElementById('audio-icon');
+      const text = document.getElementById('audio-text');
+
+      if (isAudioPlaying) {
+        audio.pause();
+        icon.className = 'fa-solid fa-volume-xmark text-masjid-gold';
+        text.innerText = 'Musik Off';
+        isAudioPlaying = false;
+      } else {
+        audio.play().then(() => {
+          icon.className = 'fa-solid fa-volume-high text-masjid-gold animate-bounce';
+          text.innerText = 'Musik On';
+          isAudioPlaying = true;
+        }).catch(err => {
+          console.warn("Autoplay diblokir browser. Pengguna harus mengeklik tombol terlebih dahulu.");
+        });
+      }
+    }
+
     function loadSavedConfig() {
-      const saved = localStorage.getItem('mosque_config_v8');
+      const saved = localStorage.getItem('mosque_config_v9');
       if (saved) {
         try { Object.assign(appConfig, JSON.parse(saved)); } catch (e) {}
       }
@@ -443,6 +478,12 @@
       document.getElementById('disp-event-speaker').innerText = appConfig.eventSpeaker;
       document.getElementById('disp-marquee-text').innerText = appConfig.marqueeText;
       
+      const audioSource = document.querySelector('#lebaran-audio source');
+      if (audioSource && appConfig.audioUrl) {
+        audioSource.src = appConfig.audioUrl;
+        document.getElementById('lebaran-audio').load();
+      }
+
       for (let key in appConfig.prayerTimes) {
         let el = document.getElementById(`time-${key}`);
         if(el) el.innerText = appConfig.prayerTimes[key];
@@ -538,9 +579,6 @@
           'Ramadhan', 'Syawal', 'Zulkaidah', 'Zulhijah'
         ];
 
-        // Pengaturan Offset Tanggal Hijriah
-        // Nilai 0 digunakan agar sinkron dengan perhitungan kalender standar (14 Rabiulakhir)
-        // Ubah ke -1 atau +1 jika ingin mengoreksi jika tanggal di TV berbeda 1 hari
         const hijriOffset = 0; 
         const hijriDate = new Date(now);
         hijriDate.setDate(hijriDate.getDate() + hijriOffset);
@@ -560,7 +598,6 @@
           hijriString = `${hDay} ${bulanHijriah[hMonthIdx]} ${hYear} H`;
         }
       } catch (err) {
-        console.warn("Gagal konversi Hijriah bawaan TV, menggunakan fallback.");
         hijriString = "14 Rabiulakhir 1448 H";
       }
 
@@ -623,7 +660,6 @@
         document.getElementById('countdown-label').innerText = `MENUJU ${nextPrayer.name} -${h}:${m}:${s}`;
       }
 
-      // --- LOGIK TAMPILAN IMAM HARIAN PERMANEN ---
       let currentYear = now.getFullYear();
       let currentMonth = String(now.getMonth() + 1).padStart(2, '0');
       let currentDay = String(now.getDate()).padStart(2, '0');
@@ -637,13 +673,11 @@
 
       document.getElementById('disp-imam-dzuhur').innerText = `IMAM DZUHUR: ${dzuhurName}`;
       
-      // Jika ada petugas hadits yang diinput, gabungkan di sebelah nama Imam Ashar
       if (haditsName !== "") {
          document.getElementById('disp-imam-ashar').innerHTML = `IMAM ASHAR: ${asharName} <span class="mx-2 text-white/30">|</span> <i class="fa-solid fa-book-open text-masjid-gold mr-1"></i> HADITS: ${haditsName}`;
       } else {
          document.getElementById('disp-imam-ashar').innerText = `IMAM ASHAR: ${asharName}`;
       }
-      // -----------------------------------------------------------
 
       prayerList.forEach(p => {
         const rowEl = document.getElementById(`item-${p.key}`);
@@ -669,6 +703,7 @@
       document.getElementById('input-city-id').value = appConfig.cityId;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
       document.getElementById('input-mosque-address').value = appConfig.address;
+      document.getElementById('input-audio-url').value = appConfig.audioUrl || '';
       
       renderImamSettings();
 
@@ -690,6 +725,7 @@
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
+      appConfig.audioUrl = document.getElementById('input-audio-url').value.trim();
       
       const newSchedules = [];
       const rows = document.querySelectorAll('.imam-row');
@@ -715,7 +751,7 @@
         fetchMyQuranAPI(appConfig.cityId);
       }
 
-      localStorage.setItem('mosque_config_v8', JSON.stringify(appConfig));
+      localStorage.setItem('mosque_config_v9', JSON.stringify(appConfig));
       renderDOMConfig();
       updateClocks(); 
       closeSettingsModal();
