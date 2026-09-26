@@ -204,8 +204,7 @@
 
   <!-- AUDIO PLAYER LEBARAN AMBIENT -->
   <audio id="lebaran-audio" loop preload="auto">
-    <!-- Menggunakan Audio Instrumen Arab/Lebaran Bebas Hak Cipta -->
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3" type="audio/mpeg">
+    <source id="audio-source" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3" type="audio/mpeg">
   </audio>
 
   <div class="mandala-container pointer-events-none"></div>
@@ -224,7 +223,7 @@
   </div>
 
   <!-- KONTROL MUSIK DAN SETTINGS -->
-  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
     <button id="btn-audio-toggle" onclick="toggleAudio()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2">
       <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
       <span id="audio-text">Musik Off</span>
@@ -368,10 +367,27 @@
           <input id="input-mosque-address" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
         </div>
 
-        <div>
-          <label class="block text-sm text-blue-200 mb-1">Link Musik Background (.mp3)</label>
-          <input id="input-audio-url" type="text" placeholder="https://domain.com/lagu-lebaran.mp3" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
-          <p class="text-[10px] text-gray-400 mt-1">Kamu bisa memasukkan URL file MP3 lagu Lebaran pilihanmu di sini.</p>
+        <!-- FITUR MUSIK BARU & DIPERBAIKI -->
+        <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg space-y-3">
+          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-[#fa-music] fa-music mr-1"></i> Pengaturan Musik / Audio</label>
+          
+          <div>
+            <label class="block text-xs text-blue-200 mb-1">Upload File MP3 dari Komputer / HP</label>
+            <input id="input-audio-file" type="file" accept="audio/*" onchange="handleAudioUpload(event)" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-1.5 text-xs text-white file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-masjid-gold file:text-black hover:file:bg-yellow-400">
+          </div>
+
+          <div>
+            <label class="block text-xs text-blue-200 mb-1">Atau Gunakan Link URL Musik (.mp3)</label>
+            <input id="input-audio-url" type="text" placeholder="https://domain.com/lagu.mp3" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-blue-200 mb-1">
+              <span>Volume Audio</span>
+              <span id="volume-val-text">50%</span>
+            </div>
+            <input id="input-audio-volume" type="range" min="0" max="1" step="0.05" value="0.5" oninput="updateVolumePreview(this.value)" class="w-full accent-masjid-gold">
+          </div>
         </div>
         
         <!-- PENGATURAN JADWAL IMAM & HADITS BERBASIS TANGGAL -->
@@ -428,6 +444,7 @@
       mosqueName: "MUSHOLA AL-MUHAJIRIN",
       address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
       audioUrl: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3",
+      audioVolume: 0.5,
       imamSchedules: [],
       eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
       eventTime: "Kajian Ba'Da Ashar",
@@ -440,6 +457,7 @@
     };
 
     let isAudioPlaying = false;
+    let tempUploadedAudio = null;
 
     function toggleAudio() {
       const audio = document.getElementById('lebaran-audio');
@@ -452,14 +470,30 @@
         text.innerText = 'Musik Off';
         isAudioPlaying = false;
       } else {
+        audio.volume = appConfig.audioVolume || 0.5;
         audio.play().then(() => {
           icon.className = 'fa-solid fa-volume-high text-masjid-gold animate-bounce';
           text.innerText = 'Musik On';
           isAudioPlaying = true;
         }).catch(err => {
-          console.warn("Autoplay diblokir browser. Pengguna harus mengeklik tombol terlebih dahulu.");
+          alert("Pemutaran audio gagal atau diblokir oleh browser. Klik OK lalu coba lagi.");
         });
       }
+    }
+
+    function handleAudioUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const objectUrl = URL.createObjectURL(file);
+        tempUploadedAudio = objectUrl;
+        document.getElementById('input-audio-url').value = file.name;
+      }
+    }
+
+    function updateVolumePreview(val) {
+      document.getElementById('volume-val-text').innerText = Math.round(val * 100) + '%';
+      const audio = document.getElementById('lebaran-audio');
+      if (audio) audio.volume = val;
     }
 
     function loadSavedConfig() {
@@ -478,10 +512,11 @@
       document.getElementById('disp-event-speaker').innerText = appConfig.eventSpeaker;
       document.getElementById('disp-marquee-text').innerText = appConfig.marqueeText;
       
-      const audioSource = document.querySelector('#lebaran-audio source');
-      if (audioSource && appConfig.audioUrl) {
-        audioSource.src = appConfig.audioUrl;
-        document.getElementById('lebaran-audio').load();
+      const audio = document.getElementById('lebaran-audio');
+      if (audio && appConfig.audioUrl) {
+        audio.src = appConfig.audioUrl;
+        audio.volume = appConfig.audioVolume || 0.5;
+        audio.load();
       }
 
       for (let key in appConfig.prayerTimes) {
@@ -704,6 +739,8 @@
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
       document.getElementById('input-mosque-address').value = appConfig.address;
       document.getElementById('input-audio-url').value = appConfig.audioUrl || '';
+      document.getElementById('input-audio-volume').value = appConfig.audioVolume || 0.5;
+      document.getElementById('volume-val-text').innerText = Math.round((appConfig.audioVolume || 0.5) * 100) + '%';
       
       renderImamSettings();
 
@@ -725,7 +762,14 @@
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
-      appConfig.audioUrl = document.getElementById('input-audio-url').value.trim();
+      
+      if (tempUploadedAudio) {
+        appConfig.audioUrl = tempUploadedAudio;
+      } else {
+        appConfig.audioUrl = document.getElementById('input-audio-url').value.trim();
+      }
+
+      appConfig.audioVolume = parseFloat(document.getElementById('input-audio-volume').value);
       
       const newSchedules = [];
       const rows = document.querySelectorAll('.imam-row');
