@@ -16,6 +16,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 
+  <!-- Firebase SDKs (Realtime Database untuk data tunggal terpusat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -55,10 +59,10 @@
 
     :focus {
       outline: 3px solid #ffc82c !important;
-      outline-offset: 2px;
+      outline-offset: 3px;
     }
 
-    /* MANDALA PATTERN ROTASI */
+    /* MANDALA PATTERN BERGERAK/ROTASI */
     .mandala-container {
       position: absolute;
       top: -50%; left: -50%;
@@ -93,15 +97,15 @@
       100% { opacity: 0.9; transform: scale(1.2) translateZ(0); }
     }
 
-    /* BULAN SABIT */
+    /* BULAN SABIT (UKURAN DIPERKECIL) */
     .crescent-moon {
       position: absolute;
-      top: 10px;
-      left: 44%;
-      width: 65px;
-      height: 65px;
+      top: 15px;
+      left: 43%;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
-      box-shadow: -11px 9px 0 2px #e9e4ce;
+      box-shadow: -12px 10px 0 2px #e9e4ce;
       opacity: 0.9;
       z-index: 1;
       will-change: filter;
@@ -110,10 +114,10 @@
     }
     @keyframes moon-glow {
       0% { filter: drop-shadow(0 0 6px rgba(255, 248, 219, 0.4)); }
-      100% { filter: drop-shadow(0 0 15px rgba(255, 248, 219, 0.75)); }
+      100% { filter: drop-shadow(0 0 16px rgba(255, 248, 219, 0.75)); }
     }
 
-    /* LENTERA GANTUNG */
+    /* LENTERA GANTUNG (UKURAN DIPERKECIL) */
     .lantern {
       position: absolute;
       top: 0;
@@ -138,10 +142,10 @@
       box-shadow: 0 0 15px rgba(255, 200, 44, 0.65);
     }
     .lantern-flame {
-      width: 8px; height: 12px;
+      width: 9px; height: 13px;
       background: #ffc82c;
       border-radius: 50%;
-      box-shadow: 0 0 8px #ffc82c;
+      box-shadow: 0 0 9px #ffc82c;
       animation: flame-flicker 2s infinite alternate;
     }
     .lantern-base {
@@ -149,18 +153,18 @@
       clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
     }
 
-    .lantern-left { left: 40%; animation: lantern-sway-left 6.5s ease-in-out infinite alternate; }
-    .lantern-right { left: 51%; animation: lantern-sway-right 7.5s ease-in-out infinite alternate 0.8s; }
+    .lantern-left { left: 39%; animation: lantern-sway-left 6.5s ease-in-out infinite alternate; }
+    .lantern-right { left: 50%; animation: lantern-sway-right 7.5s ease-in-out infinite alternate 0.8s; }
 
-    .lantern-left .lantern-chain { height: 20px; }
-    .lantern-left .lantern-cap { width: 24px; height: 10px; }
-    .lantern-left .lantern-glass { width: 30px; height: 38px; }
-    .lantern-left .lantern-base { width: 26px; height: 9px; }
+    .lantern-left .lantern-chain { height: 25px; }
+    .lantern-left .lantern-cap { width: 26px; height: 11px; }
+    .lantern-left .lantern-glass { width: 32px; height: 40px; }
+    .lantern-left .lantern-base { width: 28px; height: 10px; }
 
-    .lantern-right .lantern-chain { height: 40px; }
-    .lantern-right .lantern-cap { width: 28px; height: 12px; }
-    .lantern-right .lantern-glass { width: 34px; height: 44px; }
-    .lantern-right .lantern-base { width: 30px; height: 10px; }
+    .lantern-right .lantern-chain { height: 45px; }
+    .lantern-right .lantern-cap { width: 30px; height: 12px; }
+    .lantern-right .lantern-glass { width: 36px; height: 45px; }
+    .lantern-right .lantern-base { width: 31px; height: 11px; }
 
     @keyframes lantern-sway-left {
       0% { transform: rotate(-3deg) translateZ(0); }
@@ -199,11 +203,11 @@
     ::-webkit-scrollbar-thumb { background: #28446b; border-radius: 3px; }
   </style>
 </head>
-<body class="flex flex-col justify-between relative overflow-hidden">
+<body class="flex flex-col justify-between relative">
 
-  <!-- AUDIO PLAYER -->
+  <!-- AUDIO PLAYER (LINK MUSIK DIKUNCI PERMANEN DEMI KEAMANAN) -->
   <audio id="lebaran-audio" loop preload="auto">
-    <source src="https://strict-maroon-gl7sswod.edgeone.dev/" type="audio/mpeg">
+    <source id="audio-source" src="https://strict-maroon-gl7sswod.edgeone.dev/" type="audio/mpeg">
   </audio>
 
   <audio id="adzan-audio" preload="auto">
@@ -230,115 +234,115 @@
     <div class="lantern-base"></div>
   </div>
 
-  <!-- KONTROL UTAMA -->
-  <div class="absolute top-2 right-4 z-50 flex items-center gap-2">
-    <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-2.5 py-1 bg-[#0d223f]/90 border border-white/20 rounded-lg hover:bg-white/20 transition text-xs flex items-center gap-1.5 focus:ring-2 focus:ring-masjid-gold shadow-md">
+  <!-- KONTROL UTAMA (MENU MUSIK & SETTINGS TRANSPARAN DENGAN HOVER/FOCUS NORMAL) -->
+  <div class="absolute top-3 right-6 z-50 flex items-center gap-2">
+    <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-3 py-1.5 bg-[#0d223f]/60 border border-white/10 rounded-lg opacity-60 hover:opacity-100 focus:opacity-100 hover:bg-[#0d223f]/90 hover:border-white/30 transition-all duration-300 text-xs flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold shadow-md backdrop-blur-sm">
       <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
       <span id="audio-text">Musik Off</span>
     </button>
-    <button id="btn-open-settings" tabindex="0" onclick="requestSettingsAccess()" class="px-2.5 py-1 bg-[#0d223f]/90 border border-white/20 rounded-lg hover:bg-white/20 transition text-xs flex items-center gap-1.5 focus:ring-2 focus:ring-masjid-gold shadow-md">
+    <button id="btn-open-settings" tabindex="0" onclick="requestSettingsAccess()" class="px-3 py-1.5 bg-[#0d223f]/60 border border-white/10 rounded-lg opacity-60 hover:opacity-100 focus:opacity-100 hover:bg-[#0d223f]/90 hover:border-white/30 transition-all duration-300 text-xs flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold shadow-md backdrop-blur-sm">
       <i class="fa-solid fa-gear"></i> Settings
     </button>
   </div>
 
-  <!-- MAIN CONTAINER -->
-  <main class="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 lg:px-6 pt-6 lg:pt-8 pb-2 w-full min-h-0 overflow-y-auto lg:overflow-hidden">
+  <main class="relative z-10 flex-1 grid grid-cols-12 gap-4 px-6 pt-10 pb-2 w-full min-h-0">
     
     <!-- LEFT PANEL -->
-    <div class="lg:col-span-7 flex flex-col justify-between h-full min-h-0 space-y-4 lg:space-y-0">
+    <div class="col-span-7 flex flex-col justify-between h-full min-h-0">
       
       <div>
-        <div class="flex items-center gap-3 mb-1">
-          <i class="fa-solid fa-mosque text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl text-masjid-gold shrink-0"></i>
+        <div class="flex items-center gap-4 mb-1">
+          <i class="fa-solid fa-mosque text-3xl sm:text-4xl 2xl:text-5xl text-masjid-gold shrink-0"></i>
           <div class="min-w-0">
-            <h1 id="disp-mosque-name" class="font-display text-lg sm:text-xl lg:text-2xl 2xl:text-4xl font-black tracking-wider uppercase text-white drop-shadow-md leading-tight truncate">MUSHOLA AL-MUHAJIRIN</h1>
-            <p id="disp-mosque-address" class="text-blue-200 text-[11px] sm:text-xs 2xl:text-sm truncate">Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu</p>
+            <h1 id="disp-mosque-name" class="font-display text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-black tracking-wider uppercase text-white drop-shadow-md leading-none whitespace-nowrap overflow-hidden text-ellipsis">MUSHOLA AL-MUHAJIRIN</h1>
+            <p id="disp-mosque-address" class="text-blue-200 text-xs 2xl:text-sm mt-1 truncate">Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224</p>
           </div>
         </div>
-        <div class="flex items-center gap-3 text-xs sm:text-sm font-bold mt-1">
+        <div class="flex items-center gap-3 text-sm font-bold mt-2">
           <span id="disp-date-full" class="text-masjid-gold drop-shadow-sm">--</span>
-          <span class="text-blue-300 flex items-center gap-1"><i class="fa-solid fa-cloud-sun"></i> 29°C Cerah</span>
+          <span class="text-blue-300 flex items-center gap-1.5"><i class="fa-solid fa-cloud-sun"></i> 29°C Cerah</span>
         </div>
       </div>
 
-      <div class="my-auto py-2 lg:py-0">
-        <div id="main-digital-clock" class="font-display text-5xl sm:text-6xl lg:text-[5.5rem] 2xl:text-[7.5rem] leading-none tracking-widest text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+      <div class="my-auto">
+        <div id="main-digital-clock" class="font-display text-[5.5rem] 2xl:text-[7.5rem] leading-none tracking-widest text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
           00:00:00
         </div>
-        <div id="countdown-label" class="text-masjid-gold text-base sm:text-lg lg:text-xl 2xl:text-2xl font-bold tracking-widest uppercase mt-2 drop-shadow-md">
+        <div id="countdown-label" class="text-masjid-gold text-xl 2xl:text-2xl font-bold tracking-widest uppercase mt-2 drop-shadow-md">
           MEMUAT WAKTU SHOLAT...
         </div>
       </div>
 
-      <div class="space-y-2">
-        <div class="flex flex-col gap-1">
-          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-3 py-1 text-white font-medium text-xs sm:text-sm">
+      <div class="space-y-2 2xl:space-y-3">
+        
+        <div class="flex flex-col gap-1.5 2xl:gap-2">
+          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-dzuhur">IMAM DZUHUR: Memuat...</span>
           </div>
-          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-3 py-1 text-white font-medium text-xs sm:text-sm">
+          <div class="inline-flex items-center w-fit bg-[#0a1b34] border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
             <span id="disp-imam-ashar">IMAM ASHAR: Memuat...</span>
           </div>
         </div>
 
-        <div class="glass-card rounded-xl p-3 max-w-lg shadow-lg relative overflow-hidden">
+        <div class="glass-card rounded-xl p-3 2xl:p-4 max-w-lg shadow-lg relative overflow-hidden">
           <div class="absolute left-0 top-0 bottom-0 w-1 bg-masjid-gold"></div>
-          <div id="disp-event-title" class="font-bold text-xs sm:text-sm text-white mb-1 uppercase drop-shadow-sm">AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN</div>
-          <div class="flex flex-wrap items-center gap-3 text-xs text-masjid-gold font-medium">
-            <span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-blue-200"></i> <span id="disp-event-time">Kajian Ba'Da Ashar</span></span>
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-microphone text-blue-200"></i> <span id="disp-event-speaker">Ust. Rosyid Marzuki</span></span>
+          <div id="disp-event-title" class="font-bold text-sm 2xl:text-base text-white mb-1.5 uppercase drop-shadow-sm">AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN</div>
+          <div class="flex items-center gap-4 2xl:gap-6 text-xs 2xl:text-sm text-masjid-gold font-medium">
+            <span class="flex items-center gap-2"><i class="fa-regular fa-clock text-blue-200"></i> <span id="disp-event-time">Kajian Ba'Da Ashar</span></span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-microphone text-blue-200"></i> <span id="disp-event-speaker">Ust. Rosyid Marzuki</span></span>
           </div>
         </div>
 
-        <div class="inline-flex items-center gap-2 bg-[#08162c] border border-white/10 rounded-lg px-3 py-1 text-blue-100 font-bold tracking-wide text-xs">
+        <div class="inline-flex items-center gap-3 bg-[#08162c] border border-white/10 rounded-lg px-3 py-1.5 2xl:px-4 2xl:py-2 text-blue-100 font-bold tracking-wide text-xs 2xl:text-sm">
           <i class="fa-solid fa-moon text-masjid-gold"></i>
-          <span id="ramadhan-countdown-text">... HARI MENUJU BULAN RAMADHAN</span>
+          <span id="ramadhan-countdown-text">... HARI MENUJU BULAN RAMADHAN 1448 H</span>
         </div>
       </div>
 
     </div>
 
     <!-- RIGHT PANEL (Prayer Times) -->
-    <div class="lg:col-span-5 flex flex-col justify-between h-full space-y-1.5 lg:space-y-0 lg:pl-4 pb-2 pt-2 lg:pt-4">
-      <div id="item-imsak" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-moon text-blue-300 w-5 text-center"></i> Imsak</div>
-        <div id="time-imsak" class="font-display text-xl lg:text-2xl font-black text-white">04:36</div>
+    <div class="col-span-5 flex flex-col justify-evenly h-full pl-4 2xl:pl-6 pb-2 pt-6">
+      <div id="item-imsak" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-moon text-blue-300 w-6 text-center"></i> Imsak</div>
+        <div id="time-imsak" class="font-display text-2xl 2xl:text-3xl font-black text-white">04:36</div>
       </div>
-      <div id="item-subuh" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-5 text-center"></i> Subuh</div>
-        <div id="time-subuh" class="font-display text-xl lg:text-2xl font-black text-white">04:46</div>
+      <div id="item-subuh" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-6 text-center"></i> Subuh</div>
+        <div id="time-subuh" class="font-display text-2xl 2xl:text-3xl font-black text-white">04:46</div>
       </div>
-      <div id="item-syuruk" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-regular fa-sun text-blue-300 w-5 text-center"></i> Syuruq</div>
-        <div id="time-syuruk" class="font-display text-xl lg:text-2xl font-black text-white">05:57</div>
+      <div id="item-syuruk" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-regular fa-sun text-blue-300 w-6 text-center"></i> Syuruq</div>
+        <div id="time-syuruk" class="font-display text-2xl 2xl:text-3xl font-black text-white">05:57</div>
       </div>
-      <div id="item-dzuhur" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-5 text-center"></i> Dzuhur</div>
-        <div id="time-dzuhur" class="font-display text-xl lg:text-2xl font-black text-white">12:07</div>
+      <div id="item-dzuhur" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-sun text-blue-300 w-6 text-center"></i> Dzuhur</div>
+        <div id="time-dzuhur" class="font-display text-2xl 2xl:text-3xl font-black text-white">12:07</div>
       </div>
-      <div id="item-ashar" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-sun text-blue-300 w-5 text-center"></i> Ashar</div>
-        <div id="time-ashar" class="font-display text-xl lg:text-2xl font-black text-white">15:10</div>
+      <div id="item-ashar" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-sun text-blue-300 w-6 text-center"></i> Ashar</div>
+        <div id="time-ashar" class="font-display text-2xl 2xl:text-3xl font-black text-white">15:10</div>
       </div>
-      <div id="item-maghrib" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-moon text-blue-300 w-5 text-center"></i> Maghrib</div>
-        <div id="time-maghrib" class="font-display text-xl lg:text-2xl font-black text-white">18:10</div>
+      <div id="item-maghrib" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-cloud-moon text-blue-300 w-6 text-center"></i> Maghrib</div>
+        <div id="time-maghrib" class="font-display text-2xl 2xl:text-3xl font-black text-white">18:10</div>
       </div>
-      <div id="item-isya" class="flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all">
-        <div class="flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-star-and-crescent text-blue-300 w-5 text-center"></i> Isya</div>
-        <div id="time-isya" class="font-display text-xl lg:text-2xl font-black text-white">19:18</div>
+      <div id="item-isya" class="flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all">
+        <div class="flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white"><i class="fa-solid fa-star-and-crescent text-blue-300 w-6 text-center"></i> Isya</div>
+        <div id="time-isya" class="font-display text-2xl 2xl:text-3xl font-black text-white">19:18</div>
       </div>
     </div>
   </main>
 
   <!-- FOOTER MARQUEE -->
-  <footer class="relative z-20 flex items-stretch h-9 lg:h-10 bg-[#030812] border-t-[3px] border-masjid-gold shrink-0">
-    <div class="flex items-center px-3 lg:px-5 bg-masjid-gold text-black font-black text-xs lg:text-sm tracking-wider flex-shrink-0" style="clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); padding-right: 25px;">
-      <i class="fa-solid fa-bullhorn mr-1.5"></i> INFO DKM
+  <footer class="relative z-20 flex items-stretch h-10 2xl:h-12 bg-[#030812] border-t-[3px] border-masjid-gold shrink-0">
+    <div class="flex items-center px-4 2xl:px-6 bg-masjid-gold text-black font-black text-sm 2xl:text-base tracking-wider flex-shrink-0" style="clip-path: polygon(0 0, 92% 0, 100% 100%, 0% 100%); padding-right: 30px;">
+      <i class="fa-solid fa-bullhorn mr-2"></i> INFO DKM
     </div>
     <div class="flex-1 marquee-container flex items-center bg-transparent">
-      <div id="disp-marquee-text" class="marquee-content font-bold tracking-wide text-white text-xs lg:text-sm uppercase">
+      <div id="disp-marquee-text" class="marquee-content font-bold tracking-wide text-white text-sm 2xl:text-base uppercase">
         SHOLAT KARENA ALLAH SWT. | SELAMAT HARI RAYA IDUL FITRI MUBARAK | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.
       </div>
     </div>
@@ -347,107 +351,110 @@
   <!-- MODAL AUTH PASSWORD -->
   <div id="auth-modal" class="fixed inset-0 z-[110] bg-black/90 hidden items-center justify-center p-4">
     <div class="bg-masjid-dark border border-masjid-gold rounded-xl w-full max-w-sm p-6 shadow-2xl text-center">
-      <i class="fa-solid fa-lock text-3xl text-masjid-gold mb-2"></i>
-      <h3 class="text-base font-bold text-white mb-1">Akses Pengaturan</h3>
+      <i class="fa-solid fa-lock text-4xl text-masjid-gold mb-3"></i>
+      <h3 class="text-lg font-bold text-white mb-2">Akses Pengaturan</h3>
       <p class="text-xs text-blue-200 mb-4">Masukkan password untuk membuka settings.</p>
       
       <input id="input-auth-pass" type="password" placeholder="Password" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-center text-lg mb-2 focus:outline-none focus:border-masjid-gold" onkeydown="if(event.key==='Enter') verifyPassword()">
       <p id="auth-error-msg" class="text-xs text-red-400 hidden mb-3"><i class="fa-solid fa-circle-exclamation mr-1"></i> Password Salah!</p>
 
       <div class="flex justify-center gap-3 mt-4">
-        <button tabindex="0" onclick="closeAuthModal()" class="px-4 py-1.5 rounded-md bg-gray-600 text-white text-xs font-medium hover:bg-gray-500 transition">Batal</button>
-        <button tabindex="0" onclick="verifyPassword()" class="px-5 py-1.5 rounded-md bg-masjid-gold text-black text-xs font-bold hover:bg-yellow-400 transition">Masuk</button>
+        <button tabindex="0" onclick="closeAuthModal()" class="px-4 py-2 rounded-md bg-gray-600 text-white text-xs font-medium hover:bg-gray-500 transition">Batal</button>
+        <button tabindex="0" onclick="verifyPassword()" class="px-5 py-2 rounded-md bg-masjid-gold text-black text-xs font-bold hover:bg-yellow-400 transition">Masuk</button>
       </div>
     </div>
   </div>
 
   <!-- SETTINGS MODAL -->
   <div id="settings-modal" class="fixed inset-0 z-[100] bg-black/90 hidden items-center justify-center p-4">
-    <div class="bg-masjid-dark border border-masjid-gold rounded-xl w-full max-w-2xl p-5 shadow-2xl">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-masjid-gold"><i class="fa-solid fa-sliders mr-2"></i>Pengaturan Signage (Server Synced)</h3>
-        <button tabindex="0" onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <div class="bg-masjid-dark border border-masjid-gold rounded-xl w-full max-w-2xl p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="text-xl font-bold text-masjid-gold">Pengaturan Signage</h3>
+        <button tabindex="0" onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
       </div>
 
-      <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-2 text-xs">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-blue-200 mb-1">ID Kota Kemenag</label>
-            <select id="input-city-id" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white focus:outline-none focus:border-masjid-gold">
+            <label class="block text-sm text-blue-200 mb-1">ID Kota Kemenag</label>
+            <select id="input-city-id" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white focus:outline-none focus:border-masjid-gold">
               <option value="0401">KOTA BENGKULU</option>
               <option value="1301">KOTA JAKARTA PUSAT</option>
               <option value="1203">KOTA BANDUNG</option>
             </select>
           </div>
           <div>
-            <label class="block text-blue-200 mb-1">Nama Mushola</label>
-            <input id="input-mosque-name" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white">
+            <label class="block text-sm text-blue-200 mb-1">Nama Mushola</label>
+            <input id="input-mosque-name" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
           </div>
         </div>
 
         <div>
-          <label class="block text-blue-200 mb-1">Alamat Mushola</label>
-          <input id="input-mosque-address" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white">
+          <label class="block text-sm text-blue-200 mb-1">Alamat Mushola</label>
+          <input id="input-mosque-address" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
         </div>
 
         <!-- PENGATURAN PASSWORD BARU -->
-        <div class="p-2.5 bg-[#06152a] border border-[#28446b] rounded-lg">
-          <label class="block font-bold text-masjid-gold mb-1"><i class="fa-solid fa-key mr-1"></i> Keamanan (Password Access)</label>
-          <div class="flex items-center gap-2">
-            <input id="input-new-pass" type="password" placeholder="Password Baru (Kosongkan jika tidak diubah)" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white">
-            <span class="text-[10px] text-blue-300 shrink-0">Default: 1234</span>
+        <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg">
+          <label class="block text-sm font-bold text-masjid-gold mb-1"><i class="fa-solid fa-key mr-1"></i> Keamanan (Password Access)</label>
+          <div class="flex items-center gap-3">
+            <input id="input-new-pass" type="password" placeholder="Password Baru (Kosongkan jika tidak diubah)" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
+            <span class="text-[11px] text-blue-300 shrink-0">Default: 1234</span>
           </div>
         </div>
 
-        <!-- PENGATURAN MUSIK & ADZAN -->
-        <div class="p-2.5 bg-[#06152a] border border-[#28446b] rounded-lg space-y-2">
-          <label class="block font-bold text-masjid-gold"><i class="fa-solid fa-music mr-1"></i> Pengaturan Volume</label>
+        <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg space-y-3">
+          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-volume-high mr-1"></i> Pengaturan Volume Audio</label>
           <div>
-            <div class="flex justify-between text-blue-200 mb-1">
-              <span>Volume Suara Audio & Adzan</span>
+            <div class="flex justify-between text-xs text-blue-200 mb-1">
+              <span>Volume Audio</span>
               <span id="volume-val-text">50%</span>
             </div>
             <input id="input-audio-volume" type="range" min="0" max="1" step="0.05" value="0.5" oninput="updateVolumePreview(this.value)" class="w-full accent-masjid-gold">
           </div>
         </div>
         
-        <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg">
-          <div class="flex justify-between items-center mb-2">
-            <label class="block text-masjid-gold font-bold"><i class="fa-solid fa-calendar-days mr-1"></i> Jadwal Harian Server (Dzuhur & Ashar)</label>
-            <button tabindex="0" onclick="addImamRow()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
+        <div class="p-4 bg-[#06152a] border border-[#28446b] rounded-lg">
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-sm text-masjid-gold font-bold"><i class="fa-solid fa-calendar-days mr-1"></i> Jadwal Harian Server Tunggal</label>
+            <button tabindex="0" onclick="addImamRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
           </div>
+          <p class="text-[11px] text-blue-300 mb-3">* Tersimpan otomatis di server terpusat. Mengubah jadwal di sini akan otomatis mengubah tampilan di semua TV/perangkat lain.</p>
 
-          <div id="imam-schedule-container" class="max-h-[25vh] overflow-y-auto pr-1"></div>
+          <div id="imam-schedule-container" class="max-h-[30vh] overflow-y-auto pr-2"></div>
         </div>
 
         <div>
-          <label class="block text-blue-200 mb-1">Judul Agenda</label>
-          <input id="input-event-title" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white mb-2">
+          <label class="block text-sm text-blue-200 mb-1">Judul Agenda</label>
+          <input id="input-event-title" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white mb-2">
           <div class="grid grid-cols-2 gap-2">
-            <input id="input-event-time" type="text" placeholder="Waktu / Topik" class="bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white">
-            <input id="input-event-speaker" type="text" placeholder="Penceramah" class="bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white">
+            <input id="input-event-time" type="text" placeholder="Waktu / Topik" class="bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
+            <input id="input-event-speaker" type="text" placeholder="Penceramah" class="bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
           </div>
         </div>
         <div>
-          <label class="block text-blue-200 mb-1">Teks Berjalan (Running Text)</label>
-          <textarea id="input-marquee" rows="2" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-2.5 py-1.5 text-white"></textarea>
+          <label class="block text-sm text-blue-200 mb-1">Teks Berjalan (Running Text)</label>
+          <textarea id="input-marquee" rows="3" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white"></textarea>
         </div>
       </div>
 
-      <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-[#28446b]">
-        <button tabindex="0" onclick="closeSettingsModal()" class="px-4 py-1.5 rounded-md bg-gray-600 text-white font-medium hover:bg-gray-500 transition text-xs">Batal</button>
-        <button tabindex="0" onclick="saveSettings()" class="px-5 py-1.5 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition text-xs">Simpan ke Server</button>
+      <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#28446b]">
+        <button tabindex="0" onclick="closeSettingsModal()" class="px-5 py-2 rounded-md bg-gray-600 text-white font-medium hover:bg-gray-500 transition">Batal</button>
+        <button tabindex="0" onclick="saveSettings()" class="px-5 py-2 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition">Simpan</button>
       </div>
     </div>
   </div>
 
   <script>
-    /* CONFIG PENYIMPANAN SERVER TUNGGAL (JSONBin.io API) */
-    const SERVER_CONFIG = {
-      binId: "6ab7a934ac6210605af777ad", 
-      apiKey: "$2a$10$Yc.E2D8VEhTeCwX/4enJz.H.jBofmMje5Kcrc.tKIX69UYUsRy4H2", 
-      useServer: true
+    // --- DATABASE SERVER REALTIME TERPUSAT (FIREBASE) ---
+    const firebaseConfig = {
+      databaseURL: "https://mushola-almuhajirin-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+    const configRef = db.ref('mosque_config_v1');
 
     function createStars() {
       const container = document.getElementById('stars-container');
@@ -466,12 +473,15 @@
       }
     }
 
+    const PERMANENT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
+
     const appConfig = {
       cityId: "0401", 
       mosqueName: "MUSHOLA AL-MUHAJIRIN",
-      address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu",
+      address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
+      audioUrl: PERMANENT_AUDIO_URL,
       audioVolume: 0.5,
-      adminPassword: "1234", 
+      adminPassword: "1234",
       imamSchedules: [],
       eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
       eventTime: "Kajian Ba'Da Ashar",
@@ -520,54 +530,19 @@
       if (adzan) adzan.volume = val;
     }
 
-    /* FUNGSI SINKRONISASI SERVER & LOCALSTORAGE */
-    async function loadSavedConfig() {
-      if (SERVER_CONFIG.useServer && SERVER_CONFIG.binId !== "") {
-        try {
-          const res = await fetch(`https://api.jsonbin.io/v3/b/${SERVER_CONFIG.binId}/latest`, {
-            headers: { 'X-Master-Key': SERVER_CONFIG.apiKey }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.record && Object.keys(data.record).length > 1) {
-              Object.assign(appConfig, data.record);
-              localStorage.setItem('mosque_config_v12', JSON.stringify(appConfig));
-              renderDOMConfig();
-              return;
-            }
-          }
-        } catch (err) {
-          console.warn("Server offline, membaca data lokal...");
+    // Mendengarkan Sinkronisasi Realtime Dari Server Terpusat
+    function initServerSync() {
+      configRef.on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          Object.assign(appConfig, val);
+          renderDOMConfig();
+          updateClocks();
+        } else {
+          // Inisialisasi awal ke server jika server masih kosong
+          configRef.set(appConfig);
         }
-      }
-
-      const saved = localStorage.getItem('mosque_config_v12');
-      if (saved) {
-        try { 
-          const parsed = JSON.parse(saved);
-          Object.assign(appConfig, parsed); 
-        } catch (e) {}
-      }
-      renderDOMConfig();
-    }
-
-    async function pushConfigToServer() {
-      localStorage.setItem('mosque_config_v12', JSON.stringify(appConfig));
-      
-      if (SERVER_CONFIG.useServer && SERVER_CONFIG.binId !== "") {
-        try {
-          await fetch(`https://api.jsonbin.io/v3/b/${SERVER_CONFIG.binId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Master-Key': SERVER_CONFIG.apiKey
-            },
-            body: JSON.stringify(appConfig)
-          });
-        } catch (err) {
-          console.error("Gagal menyimpan ke server:", err);
-        }
-      }
+      });
     }
 
     function renderDOMConfig() {
@@ -580,6 +555,7 @@
       
       const audio = document.getElementById('lebaran-audio');
       if (audio) {
+        audio.src = PERMANENT_AUDIO_URL;
         audio.volume = appConfig.audioVolume || 0.5;
       }
 
@@ -589,7 +565,7 @@
       }
     }
 
-    /* AKSES PASSWORD MODAL */
+    /* SISTEM AKSES SETTINGS BER-PASSWORD */
     function requestSettingsAccess() {
       document.getElementById('input-auth-pass').value = '';
       document.getElementById('auth-error-msg').classList.add('hidden');
@@ -624,25 +600,25 @@
     function addImamRow(date = '', d_imam = '', a_imam = '', a_hadits = '') {
       const container = document.getElementById('imam-schedule-container');
       const div = document.createElement('div');
-      div.className = 'bg-[#0a1b34] p-2.5 rounded-md border border-[#1e3454] imam-row relative mb-2.5';
+      div.className = 'bg-[#0a1b34] p-3 rounded-md border border-[#1e3454] imam-row relative mb-3';
       
       div.innerHTML = `
-        <div class="flex justify-between items-center mb-1.5">
+        <div class="flex justify-between items-center mb-2">
           <div class="flex items-center gap-2">
             <i class="fa-regular fa-calendar text-masjid-gold"></i>
-            <input type="date" value="${date}" class="bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs w-[120px] focus:outline-none focus:border-masjid-gold input-imam-date">
+            <input type="date" value="${date}" class="bg-[#051329] border border-[#28446b] rounded px-2 py-1.5 text-white text-xs w-[130px] focus:outline-none focus:border-masjid-gold input-imam-date">
           </div>
           <button tabindex="0" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 transition text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1 p-1.5 bg-[#051329]/50 rounded border border-white/5 flex flex-col justify-center">
-            <div class="text-[9px] text-masjid-gold uppercase font-bold text-center">Waktu Dzuhur</div>
-            <input type="text" placeholder="Imam Dzuhur" value="${d_imam}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-imam-dzuhur">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1.5 p-2 bg-[#051329]/50 rounded border border-white/5 flex flex-col justify-center">
+            <div class="text-[10px] text-masjid-gold uppercase font-bold text-center">Waktu Dzuhur</div>
+            <input type="text" placeholder="Nama Imam Dzuhur" value="${d_imam}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-imam-dzuhur">
           </div>
-          <div class="space-y-1 p-1.5 bg-[#051329]/50 rounded border border-white/5">
-            <div class="text-[9px] text-masjid-gold uppercase font-bold text-center">Waktu Ashar</div>
-            <input type="text" placeholder="Imam Ashar" value="${a_imam}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-imam-ashar">
-            <input type="text" placeholder="Hadits Ashar" value="${a_hadits}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-hadits-ashar">
+          <div class="space-y-1.5 p-2 bg-[#051329]/50 rounded border border-white/5">
+            <div class="text-[10px] text-masjid-gold uppercase font-bold text-center">Waktu Ashar</div>
+            <input type="text" placeholder="Nama Imam Ashar" value="${a_imam}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-imam-ashar">
+            <input type="text" placeholder="Pembaca Hadits Ashar" value="${a_hadits}" class="w-full bg-[#051329] border border-[#28446b] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-masjid-gold input-hadits-ashar">
           </div>
         </div>
       `;
@@ -711,7 +687,9 @@
         ];
 
         const formatter = new Intl.DateTimeFormat('id-TN-u-ca-islamic', { 
-          day: 'numeric', month: 'numeric', year: 'numeric' 
+          day: 'numeric', 
+          month: 'numeric', 
+          year: 'numeric' 
         });
         
         const parts = formatter.formatToParts(now);
@@ -823,7 +801,7 @@
       let currentDay = String(now.getDate()).padStart(2, '0');
       let todayString = `${currentYear}-${currentMonth}-${currentDay}`;
 
-      let scheduleToday = appConfig.imamSchedules.find(s => s.date === todayString);
+      let scheduleToday = (appConfig.imamSchedules || []).find(s => s.date === todayString);
 
       let dzuhurName = (scheduleToday && scheduleToday.dzuhur) ? scheduleToday.dzuhur : "Belum Terjadwal";
       let asharName = (scheduleToday && scheduleToday.ashar) ? scheduleToday.ashar : "Belum Terjadwal";
@@ -842,22 +820,21 @@
         if (!rowEl) return;
         
         if (p.key === nextPrayer.key) {
-          rowEl.className = 'flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-masjid-gold text-black shadow-lg transition-all scale-[1.02] border-none font-bold z-10';
-          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-black';
+          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-masjid-gold text-black shadow-lg transition-all scale-[1.02] border-none font-bold z-10';
+          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-black';
           rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-blue-300', 'text-black');
-          rowEl.querySelector('div:last-child').className = 'font-display text-xl lg:text-2xl font-black text-black';
+          rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-black';
         } else {
-          rowEl.className = 'flex items-center justify-between px-4 py-1.5 lg:py-2 rounded-full bg-[#06152a] border border-white/10 transition-all scale-100 z-0';
-          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 text-base lg:text-lg font-bold tracking-wider uppercase text-white';
+          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a] border border-white/10 transition-all scale-100 z-0';
+          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white';
           if (!rowEl.querySelector('i').className.includes('text-blue-300')) {
              rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-black', 'text-blue-300');
           }
-          rowEl.querySelector('div:last-child').className = 'font-display text-xl lg:text-2xl font-black text-white';
+          rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-white';
         }
       });
     }
 
-    /* DI SINI LETAK PERBAIKANNYA */
     function openSettingsModal() {
       document.getElementById('input-city-id').value = appConfig.cityId;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
@@ -887,7 +864,7 @@
       document.getElementById('btn-open-settings').focus();
     }
 
-    async function saveSettings() {
+    function saveSettings() {
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
@@ -897,6 +874,7 @@
         appConfig.adminPassword = newPassInput;
       }
 
+      appConfig.audioUrl = PERMANENT_AUDIO_URL;
       appConfig.audioVolume = parseFloat(document.getElementById('input-audio-volume').value);
       
       const newSchedules = [];
@@ -923,9 +901,9 @@
         fetchMyQuranAPI(appConfig.cityId);
       }
 
-      await pushConfigToServer();
-      renderDOMConfig();
-      updateClocks(); 
+      // SIMPAN KE SERVER FIREBASE (MENGUBAH DATA DI SEMUA PERANGKAT LAIN)
+      configRef.set(appConfig);
+      
       closeSettingsModal();
     }
 
@@ -953,13 +931,11 @@
           activeEl = focusableElements[0];
         }
 
-        const activeRect = activeEl.getBoundingClientRect();
-        let bestCandidate = null;
-        let minDistance = Infinity;
-
         const key = e.key;
+        const isInputActive = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
 
-        if (key === 'Escape' || key === 'Backspace' || e.keyCode === 10009 || e.keyCode === 27) {
+        // 1. Tombol Escape (Bisa menutup modal kapan saja)
+        if (key === 'Escape' || e.keyCode === 27) {
           if (isAuthOpen) {
             closeAuthModal();
             e.preventDefault();
@@ -972,12 +948,33 @@
           }
         }
 
-        if (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
-          if (key === 'ArrowLeft' || key === 'ArrowRight') return;
+        // 2. Tombol Backspace / Return Remote TV (Hanya menutup modal JIKA TIDAK sedang mengetik di kolom input)
+        if (key === 'Backspace' || e.keyCode === 10009) {
+          if (!isInputActive) {
+            if (isAuthOpen) {
+              closeAuthModal();
+              e.preventDefault();
+              return;
+            }
+            if (isSettingsOpen) {
+              closeSettingsModal();
+              e.preventDefault();
+              return;
+            }
+          }
+        }
+
+        // Navigasi Panah Panah (Arrow Keys)
+        if (isInputActive) {
+          if (key === 'ArrowLeft' || key === 'ArrowRight') return; // Biarkan navigasi kursor teks di dalam input
         }
 
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
           e.preventDefault();
+
+          const activeRect = activeEl.getBoundingClientRect();
+          let bestCandidate = null;
+          let minDistance = Infinity;
 
           focusableElements.forEach(el => {
             if (el === activeEl) return;
@@ -1009,9 +1006,9 @@
       });
     }
 
-    window.onload = async function() {
+    window.onload = function() {
       createStars();
-      await loadSavedConfig();
+      initServerSync();
       const now = new Date();
       updateDateDisplay(now);
       fetchMyQuranAPI(appConfig.cityId);
@@ -1019,12 +1016,6 @@
       setInterval(updateClocks, 1000);
       setInterval(() => { updateDateDisplay(new Date()); }, 60000);
       setInterval(() => { fetchMyQuranAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
-
-      setInterval(async () => {
-        if (SERVER_CONFIG.useServer) {
-          await loadSavedConfig();
-        }
-      }, 15000);
 
       setupTVNavigation();
       document.getElementById('btn-audio-toggle').focus();
