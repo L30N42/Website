@@ -525,13 +525,14 @@
         const response = await fetch(`${JSONBIN_URL}/latest`, {
           method: 'GET',
           headers: {
-            'X-Access-Key': JSONBIN_API_KEY
+            'X-Access-Key': JSONBIN_API_KEY,
+            'X-Bin-Meta': 'false'
           }
         });
         if (response.ok) {
           const resData = await response.json();
-          if (resData && resData.record) {
-            Object.assign(appConfig, resData.record);
+          if (resData) {
+            Object.assign(appConfig, resData);
             renderDOMConfig();
             updateClocks();
           }
