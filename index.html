@@ -369,7 +369,10 @@
         <button tabindex="0" onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
       </div>
 
-      <div class="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
+      <!-- STATUS NOTIFIKASI TERSIMPAN -->
+      <div id="save-status-msg" class="hidden mb-4 p-2.5 rounded-md text-xs font-bold text-center transition-all"></div>
+
+      <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm text-blue-200 mb-1">ID Kota Kemenag</label>
@@ -519,12 +522,13 @@
       if (adzan) adzan.volume = val;
     }
 
-    // MEMBACA DATA TERBARU DARI JSONBin.io
+    // MEMBACA DATA TERBARU DARI JSONBin.io ATAU LOCALSTORAGE
     async function loadConfigFromJSONBin() {
       try {
         const response = await fetch(`${JSONBIN_URL}/latest`, {
           method: 'GET',
           headers: {
+            'X-Master-Key': JSONBIN_API_KEY,
             'X-Access-Key': JSONBIN_API_KEY,
             'X-Bin-Meta': 'false'
           }
@@ -532,29 +536,53 @@
         if (response.ok) {
           const resData = await response.json();
           if (resData) {
-            Object.assign(appConfig, resData);
+            // Ambil record jika dibungkus, atau ambil objek langsung
+            const dataToApply = resData.record ? resData.record : resData;
+            Object.assign(appConfig, dataToApply);
+            localStorage.setItem('local_appConfig', JSON.stringify(appConfig));
             renderDOMConfig();
             updateClocks();
+            return;
           }
         }
       } catch (err) {
-        console.warn("Gagal mengambil data dari JSONBin:", err);
+        console.warn("Gagal mengambil data dari JSONBin, mencoba LocalStorage:", err);
+      }
+
+      // Fallback ke LocalStorage jika internet/JSONBin tidak merespons
+      const localData = localStorage.getItem('local_appConfig');
+      if (localData) {
+        try {
+          Object.assign(appConfig, JSON.parse(localData));
+          renderDOMConfig();
+          updateClocks();
+        } catch(e){}
       }
     }
 
-    // MENYIMPAN DATA DENGAN PUSH KE JSONBin.io
+    // MENYIMPAN DATA DENGAN PUSH KE JSONBin.io & LOCALSTORAGE
     async function saveConfigToJSONBin() {
+      // Simpan lokal dulu sebagai jaminan
+      localStorage.setItem('local_appConfig', JSON.stringify(appConfig));
+
       try {
-        await fetch(JSONBIN_URL, {
+        const response = await fetch(JSONBIN_URL, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY,
             'X-Access-Key': JSONBIN_API_KEY
           },
           body: JSON.stringify(appConfig)
         });
+
+        if (!response.ok) {
+          throw new Error(`Server status: ${response.status}`);
+        }
+        return true;
       } catch (err) {
         console.error("Gagal menyimpan ke JSONBin:", err);
+        return false;
       }
     }
 
@@ -849,6 +877,7 @@
     }
 
     function openSettingsModal() {
+      document.getElementById('save-status-msg').classList.add('hidden');
       document.getElementById('input-city-id').value = appConfig.cityId;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
       document.getElementById('input-mosque-address').value = appConfig.address;
@@ -879,8 +908,13 @@
 
     async function saveSettings() {
       const btnSave = document.getElementById('btn-save-settings');
+      const statusMsg = document.getElementById('save-status-msg');
+      
       btnSave.innerText = 'Menyimpan...';
       btnSave.disabled = true;
+
+      statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-blue-900/80 text-blue-200 border border-blue-500 block";
+      statusMsg.innerText = "Sedang mengunggah data ke server...";
 
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
@@ -919,13 +953,24 @@
       }
 
       // SIMPAN DATA KE JSONBin.io TERPUSAT
-      await saveConfigToJSONBin();
-      
+      const success = await saveConfigToJSONBin();
+
+      if (success) {
+        statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-green-900/80 text-green-200 border border-green-500 block";
+        statusMsg.innerText = "✓ Pengaturan berhasil disimpan ke Cloud & Lokal!";
+      } else {
+        statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-yellow-900/80 text-yellow-200 border border-yellow-500 block";
+        statusMsg.innerText = "⚠ Tersimpan di lokal TV ini (Gagal terhubung ke Cloud).";
+      }
+
       btnSave.innerText = 'Simpan';
       btnSave.disabled = false;
 
       renderDOMConfig();
-      closeSettingsModal();
+
+      setTimeout(() => {
+        closeSettingsModal();
+      }, 1200);
     }
 
     function setupTVNavigation() {
@@ -969,7 +1014,7 @@
           }
         }
 
-        // 2. Tombol Backspace / Return Remote TV (Hanya menutup modal jika tidak aktif mengetik di input)
+        // 2. Tombol Backspace / Return Remote TV
         if (key === 'Backspace' || e.keyCode === 10009) {
           if (!isInputActive) {
             if (isAuthOpen) {
@@ -1030,7 +1075,7 @@
     window.onload = async function() {
       createStars();
       
-      // Ambil data dari server terpusat JSONBin
+      // Ambil data dari server terpusat JSONBin atau LocalStorage
       await loadConfigFromJSONBin();
       
       const now = new Date();
@@ -1041,13 +1086,13 @@
       setInterval(() => { updateDateDisplay(new Date()); }, 60000);
       setInterval(() => { fetchMyQuranAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
       
-      // Cek pembaruan data terpusat secara otomatis setiap 5 detik
+      // Cek pembaruan data terpusat secara otomatis setiap 8 detik jika modal settings sedang ditutup
       setInterval(() => {
         const modal = document.getElementById('settings-modal');
         if (modal.classList.contains('hidden')) {
           loadConfigFromJSONBin();
         }
-      }, 5000);
+      }, 8000);
 
       setupTVNavigation();
       document.getElementById('btn-audio-toggle').focus();
