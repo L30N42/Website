@@ -93,7 +93,7 @@
       100% { opacity: 0.9; transform: scale(1.2) translateZ(0); }
     }
 
-    /* BULAN SABIT (UKURAN DIKECILKAN) */
+    /* BULAN SABIT */
     .crescent-moon {
       position: absolute;
       top: 10px;
@@ -113,7 +113,7 @@
       100% { filter: drop-shadow(0 0 15px rgba(255, 248, 219, 0.75)); }
     }
 
-    /* LENTERA GANTUNG (UKURAN DIKECILKAN) */
+    /* LENTERA GANTUNG */
     .lantern {
       position: absolute;
       top: 0;
@@ -241,7 +241,7 @@
     </button>
   </div>
 
-  <!-- MAIN CONTAINER (FLUID RESPONSIVE GRID) -->
+  <!-- MAIN CONTAINER -->
   <main class="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 lg:px-6 pt-6 lg:pt-8 pb-2 w-full min-h-0 overflow-y-auto lg:overflow-hidden">
     
     <!-- LEFT PANEL -->
@@ -293,7 +293,7 @@
 
         <div class="inline-flex items-center gap-2 bg-[#08162c] border border-white/10 rounded-lg px-3 py-1 text-blue-100 font-bold tracking-wide text-xs">
           <i class="fa-solid fa-moon text-masjid-gold"></i>
-          <span id="ramadhan-countdown-text">... HARI MENUJU BULAN RAMADHAN 1448 H</span>
+          <span id="ramadhan-countdown-text">... HARI MENUJU BULAN RAMADHAN</span>
         </div>
       </div>
 
@@ -541,7 +541,6 @@
         }
       }
 
-      // Fallback ke LocalStorage jika Server offline / data server baru kosong
       const saved = localStorage.getItem('mosque_config_v12');
       if (saved) {
         try { 
@@ -858,6 +857,7 @@
       });
     }
 
+    /* DI SINI LETAK PERBAIKANNYA */
     function openSettingsModal() {
       document.getElementById('input-city-id').value = appConfig.cityId;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
@@ -871,7 +871,7 @@
       document.getElementById('input-event-title').value = appConfig.eventTitle;
       document.getElementById('input-event-time').value = appConfig.eventTime;
       document.getElementById('input-event-speaker').value = appConfig.eventSpeaker;
-      document.getElementById('input-[#input-marquee').value = appConfig.marqueeText;
+      document.getElementById('input-marquee').value = appConfig.marqueeText;
 
       const modal = document.getElementById('settings-modal');
       modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1020,7 +1020,6 @@
       setInterval(() => { updateDateDisplay(new Date()); }, 60000);
       setInterval(() => { fetchMyQuranAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
 
-      // Auto Sync Polling Data Server Setiap 15 Detik
       setInterval(async () => {
         if (SERVER_CONFIG.useServer) {
           await loadSavedConfig();
