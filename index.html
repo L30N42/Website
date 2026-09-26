@@ -16,10 +16,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDKs (Realtime Database untuk data tunggal terpusat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
   <script>
     tailwind.config = {
       theme: {
@@ -97,7 +93,7 @@
       100% { opacity: 0.9; transform: scale(1.2) translateZ(0); }
     }
 
-    /* BULAN SABIT (UKURAN DIPERKECIL) */
+    /* BULAN SABIT */
     .crescent-moon {
       position: absolute;
       top: 15px;
@@ -117,7 +113,7 @@
       100% { filter: drop-shadow(0 0 16px rgba(255, 248, 219, 0.75)); }
     }
 
-    /* LENTERA GANTUNG (UKURAN DIPERKECIL) */
+    /* LENTERA GANTUNG */
     .lantern {
       position: absolute;
       top: 0;
@@ -205,7 +201,7 @@
 </head>
 <body class="flex flex-col justify-between relative">
 
-  <!-- AUDIO PLAYER (LINK MUSIK DIKUNCI PERMANEN DEMI KEAMANAN) -->
+  <!-- AUDIO PLAYER -->
   <audio id="lebaran-audio" loop preload="auto">
     <source id="audio-source" src="https://strict-maroon-gl7sswod.edgeone.dev/" type="audio/mpeg">
   </audio>
@@ -234,7 +230,7 @@
     <div class="lantern-base"></div>
   </div>
 
-  <!-- KONTROL UTAMA (MENU MUSIK & SETTINGS TRANSPARAN DENGAN HOVER/FOCUS NORMAL) -->
+  <!-- KONTROL UTAMA -->
   <div class="absolute top-3 right-6 z-50 flex items-center gap-2">
     <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-3 py-1.5 bg-[#0d223f]/60 border border-white/10 rounded-lg opacity-60 hover:opacity-100 focus:opacity-100 hover:bg-[#0d223f]/90 hover:border-white/30 transition-all duration-300 text-xs flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold shadow-md backdrop-blur-sm">
       <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
@@ -416,10 +412,10 @@
         
         <div class="p-4 bg-[#06152a] border border-[#28446b] rounded-lg">
           <div class="flex justify-between items-center mb-1">
-            <label class="block text-sm text-masjid-gold font-bold"><i class="fa-solid fa-calendar-days mr-1"></i> Jadwal Harian Server Tunggal</label>
+            <label class="block text-sm text-masjid-gold font-bold"><i class="fa-solid fa-calendar-days mr-1"></i> Jadwal Harian JSONBin.io Terpusat</label>
             <button tabindex="0" onclick="addImamRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
           </div>
-          <p class="text-[11px] text-blue-300 mb-3">* Tersimpan otomatis di server terpusat. Mengubah jadwal di sini akan otomatis mengubah tampilan di semua TV/perangkat lain.</p>
+          <p class="text-[11px] text-blue-300 mb-3">* Tersimpan otomatis di cloud JSONBin.io. Mengubah jadwal di sini akan otomatis sinkron ke seluruh layar TV secara terpusat.</p>
 
           <div id="imam-schedule-container" class="max-h-[30vh] overflow-y-auto pr-2"></div>
         </div>
@@ -440,21 +436,16 @@
 
       <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#28446b]">
         <button tabindex="0" onclick="closeSettingsModal()" class="px-5 py-2 rounded-md bg-gray-600 text-white font-medium hover:bg-gray-500 transition">Batal</button>
-        <button tabindex="0" onclick="saveSettings()" class="px-5 py-2 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition">Simpan</button>
+        <button tabindex="0" id="btn-save-settings" onclick="saveSettings()" class="px-5 py-2 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition">Simpan</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- DATABASE SERVER REALTIME TERPUSAT (FIREBASE) ---
-    const firebaseConfig = {
-      databaseURL: "https://mushola-almuhajirin-default-rtdb.asia-southeast1.firebasedatabase.app"
-    };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-    const configRef = db.ref('mosque_config_v1');
+    // --- KONFIGURASI JSONBin.io TERPUSAT ---
+    const JSONBIN_API_KEY = '$2a$10$Yc.E2D8VEhTeCwX/4enJz.H.jBofmMje5Kcrc.tKIX69UYUsRy4H2';
+    const JSONBIN_BIN_ID = '6ab7a934ac6210605af777ad';
+    const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
     function createStars() {
       const container = document.getElementById('stars-container');
@@ -475,7 +466,7 @@
 
     const PERMANENT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
 
-    const appConfig = {
+    let appConfig = {
       cityId: "0401", 
       mosqueName: "MUSHOLA AL-MUHAJIRIN",
       address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
@@ -530,19 +521,42 @@
       if (adzan) adzan.volume = val;
     }
 
-    // Mendengarkan Sinkronisasi Realtime Dari Server Terpusat
-    function initServerSync() {
-      configRef.on('value', (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-          Object.assign(appConfig, val);
-          renderDOMConfig();
-          updateClocks();
-        } else {
-          // Inisialisasi awal ke server jika server masih kosong
-          configRef.set(appConfig);
+    // MEMBACA DATA TERBARU DARI JSONBin.io
+    async function loadConfigFromJSONBin() {
+      try {
+        const response = await fetch(`${JSONBIN_URL}/latest`, {
+          method: 'GET',
+          headers: {
+            'X-Access-Key': JSONBIN_API_KEY
+          }
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData && resData.record) {
+            Object.assign(appConfig, resData.record);
+            renderDOMConfig();
+            updateClocks();
+          }
         }
-      });
+      } catch (err) {
+        console.warn("Gagal mengambil data dari JSONBin:", err);
+      }
+    }
+
+    // MENYIMPAN DATA DENGAN PUSH KE JSONBin.io
+    async function saveConfigToJSONBin() {
+      try {
+        await fetch(JSONBIN_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Access-Key': JSONBIN_API_KEY
+          },
+          body: JSON.stringify(appConfig)
+        });
+      } catch (err) {
+        console.error("Gagal menyimpan ke JSONBin:", err);
+      }
     }
 
     function renderDOMConfig() {
@@ -864,7 +878,11 @@
       document.getElementById('btn-open-settings').focus();
     }
 
-    function saveSettings() {
+    async function saveSettings() {
+      const btnSave = document.getElementById('btn-save-settings');
+      btnSave.innerText = 'Menyimpan...';
+      btnSave.disabled = true;
+
       const newCityId = document.getElementById('input-city-id').value;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
@@ -898,12 +916,16 @@
 
       if (newCityId !== appConfig.cityId) {
         appConfig.cityId = newCityId;
-        fetchMyQuranAPI(appConfig.cityId);
+        await fetchMyQuranAPI(appConfig.cityId);
       }
 
-      // SIMPAN KE SERVER FIREBASE (MENGUBAH DATA DI SEMUA PERANGKAT LAIN)
-      configRef.set(appConfig);
+      // SIMPAN DATA KE JSONBin.io TERPUSAT
+      await saveConfigToJSONBin();
       
+      btnSave.innerText = 'Simpan';
+      btnSave.disabled = false;
+
+      renderDOMConfig();
       closeSettingsModal();
     }
 
@@ -934,7 +956,7 @@
         const key = e.key;
         const isInputActive = ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
 
-        // 1. Tombol Escape (Bisa menutup modal kapan saja)
+        // 1. Tombol Escape
         if (key === 'Escape' || e.keyCode === 27) {
           if (isAuthOpen) {
             closeAuthModal();
@@ -948,7 +970,7 @@
           }
         }
 
-        // 2. Tombol Backspace / Return Remote TV (Hanya menutup modal JIKA TIDAK sedang mengetik di kolom input)
+        // 2. Tombol Backspace / Return Remote TV (Hanya menutup modal jika tidak aktif mengetik di input)
         if (key === 'Backspace' || e.keyCode === 10009) {
           if (!isInputActive) {
             if (isAuthOpen) {
@@ -964,9 +986,9 @@
           }
         }
 
-        // Navigasi Panah Panah (Arrow Keys)
+        // Navigasi Panah Remote TV
         if (isInputActive) {
-          if (key === 'ArrowLeft' || key === 'ArrowRight') return; // Biarkan navigasi kursor teks di dalam input
+          if (key === 'ArrowLeft' || key === 'ArrowRight') return;
         }
 
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
@@ -1006,16 +1028,27 @@
       });
     }
 
-    window.onload = function() {
+    window.onload = async function() {
       createStars();
-      initServerSync();
+      
+      // Ambil data dari server terpusat JSONBin
+      await loadConfigFromJSONBin();
+      
       const now = new Date();
       updateDateDisplay(now);
-      fetchMyQuranAPI(appConfig.cityId);
+      await fetchMyQuranAPI(appConfig.cityId);
       
       setInterval(updateClocks, 1000);
       setInterval(() => { updateDateDisplay(new Date()); }, 60000);
       setInterval(() => { fetchMyQuranAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
+      
+      // Cek pembaruan data terpusat secara otomatis setiap 5 detik
+      setInterval(() => {
+        const modal = document.getElementById('settings-modal');
+        if (modal.classList.contains('hidden')) {
+          loadConfigFromJSONBin();
+        }
+      }, 5000);
 
       setupTVNavigation();
       document.getElementById('btn-audio-toggle').focus();
