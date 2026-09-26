@@ -50,6 +50,12 @@
       color: #fff;
     }
 
+    /* Focus visual khusus Remote TV */
+    :focus {
+      outline: 3px solid #ffc82c !important;
+      outline-offset: 3px;
+    }
+
     /* Animasi Mandala */
     .mandala-container {
       position: absolute;
@@ -202,7 +208,7 @@
 </head>
 <body class="flex flex-col justify-between relative">
 
-  <!-- AUDIO PLAYER LEBARAN AMBIENT -->
+  <!-- AUDIO PLAYER -->
   <audio id="lebaran-audio" loop preload="auto">
     <source id="audio-source" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c889416b.mp3" type="audio/mpeg">
   </audio>
@@ -223,12 +229,12 @@
   </div>
 
   <!-- KONTROL MUSIK DAN SETTINGS -->
-  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
-    <button id="btn-audio-toggle" onclick="toggleAudio()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2">
+  <div class="absolute top-4 right-4 z-50 flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+    <button id="btn-audio-toggle" tabindex="0" onclick="toggleAudio()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
       <i id="audio-icon" class="fa-solid fa-volume-xmark text-masjid-gold"></i>
       <span id="audio-text">Musik Off</span>
     </button>
-    <button onclick="openSettingsModal()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2">
+    <button id="btn-open-settings" tabindex="0" onclick="openSettingsModal()" class="px-3 py-2 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition text-sm flex items-center gap-2 focus:ring-2 focus:ring-masjid-gold">
       <i class="fa-solid fa-gear"></i> Settings
     </button>
   </div>
@@ -263,7 +269,7 @@
 
       <div class="space-y-2 2xl:space-y-3">
         
-        <!-- Area Badge Imam (Tampil Permanen Harian) -->
+        <!-- Area Badge Imam -->
         <div class="flex flex-col gap-1.5 2xl:gap-2">
           <div class="inline-flex items-center w-fit bg-[#0a1b34]/85 border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm backdrop-blur-sm shadow-[0_0_15px_rgba(255,200,44,0.15)]">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
@@ -343,7 +349,7 @@
     <div class="bg-masjid-dark border border-masjid-gold rounded-xl w-full max-w-2xl p-6 shadow-2xl">
       <div class="flex justify-between items-center mb-5">
         <h3 class="text-xl font-bold text-masjid-gold">Pengaturan Signage</h3>
-        <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+        <button tabindex="0" onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
       </div>
 
       <div class="space-y-4 max-h-[65vh] overflow-y-auto pr-2">
@@ -367,12 +373,12 @@
           <input id="input-mosque-address" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white">
         </div>
 
-        <!-- FITUR MUSIK BARU & DIPERBAIKI -->
+        <!-- PENGATURAN MUSIK -->
         <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg space-y-3">
-          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-[#fa-music] fa-music mr-1"></i> Pengaturan Musik / Audio</label>
+          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-music mr-1"></i> Pengaturan Musik / Audio</label>
           
           <div>
-            <label class="block text-xs text-blue-200 mb-1">Upload File MP3 dari Komputer / HP</label>
+            <label class="block text-xs text-blue-200 mb-1">Upload File MP3</label>
             <input id="input-audio-file" type="file" accept="audio/*" onchange="handleAudioUpload(event)" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-1.5 text-xs text-white file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-masjid-gold file:text-black hover:file:bg-yellow-400">
           </div>
 
@@ -390,11 +396,11 @@
           </div>
         </div>
         
-        <!-- PENGATURAN JADWAL IMAM & HADITS BERBASIS TANGGAL -->
+        <!-- PENGATURAN JADWAL IMAM -->
         <div class="p-4 bg-[#06152a] border border-[#28446b] rounded-lg">
           <div class="flex justify-between items-center mb-3">
             <label class="block text-sm text-masjid-gold font-bold"><i class="fa-solid fa-calendar-days mr-1"></i> Jadwal Harian (Dzuhur & Ashar)</label>
-            <button onclick="addImamRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
+            <button tabindex="0" onclick="addImamRow()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium transition"><i class="fa-solid fa-plus mr-1"></i> Tambah Jadwal</button>
           </div>
 
           <div id="imam-schedule-container" class="max-h-[30vh] overflow-y-auto pr-2"></div>
@@ -415,8 +421,8 @@
       </div>
 
       <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#28446b]">
-        <button onclick="closeSettingsModal()" class="px-5 py-2 rounded-md bg-gray-600 text-white font-medium hover:bg-gray-500 transition">Batal</button>
-        <button onclick="saveSettings()" class="px-5 py-2 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition">Simpan</button>
+        <button tabindex="0" onclick="closeSettingsModal()" class="px-5 py-2 rounded-md bg-gray-600 text-white font-medium hover:bg-gray-500 transition">Batal</button>
+        <button tabindex="0" onclick="saveSettings()" class="px-5 py-2 rounded-md bg-masjid-gold text-black font-bold hover:bg-yellow-400 transition">Simpan</button>
       </div>
     </div>
   </div>
@@ -471,13 +477,18 @@
         isAudioPlaying = false;
       } else {
         audio.volume = appConfig.audioVolume || 0.5;
-        audio.play().then(() => {
-          icon.className = 'fa-solid fa-volume-high text-masjid-gold animate-bounce';
-          text.innerText = 'Musik On';
-          isAudioPlaying = true;
-        }).catch(err => {
-          alert("Pemutaran audio gagal atau diblokir oleh browser. Klik OK lalu coba lagi.");
-        });
+        let playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            icon.className = 'fa-solid fa-volume-high text-masjid-gold animate-bounce';
+            text.innerText = 'Musik On';
+            isAudioPlaying = true;
+          }).catch(() => {
+            // Tanpa alert() agar tidak memicu 'Popup Dialog Blocked' di TV
+            text.innerText = 'Error Audio';
+          });
+        }
       }
     }
 
@@ -536,7 +547,7 @@
             <i class="fa-regular fa-calendar text-masjid-gold"></i>
             <input type="date" value="${date}" class="bg-[#051329] border border-[#28446b] rounded px-2 py-1.5 text-white text-xs w-[130px] focus:outline-none focus:border-masjid-gold input-imam-date">
           </div>
-          <button onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 transition" title="Hapus Jadwal Ini"><i class="fa-solid fa-trash"></i> Hapus</button>
+          <button tabindex="0" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-300 transition text-xs"><i class="fa-solid fa-trash"></i> Hapus</button>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div class="space-y-1.5 p-2 bg-[#051329]/50 rounded border border-white/5 flex flex-col justify-center">
@@ -751,11 +762,16 @@
 
       const modal = document.getElementById('settings-modal');
       modal.classList.remove('hidden'); modal.classList.add('flex');
+      
+      setTimeout(() => {
+        document.getElementById('input-city-id').focus();
+      }, 100);
     }
 
     function closeSettingsModal() {
       const modal = document.getElementById('settings-modal');
       modal.classList.add('hidden'); modal.classList.remove('flex');
+      document.getElementById('btn-open-settings').focus();
     }
 
     function saveSettings() {
@@ -801,6 +817,76 @@
       closeSettingsModal();
     }
 
+    /* NAVIGASI SPASIAL REMOTE SMART TV */
+    function setupTVNavigation() {
+      document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('settings-modal');
+        const isModalOpen = !modal.classList.contains('hidden');
+        
+        const focusableSelector = 'button, input, select, textarea, [tabindex="0"]';
+        let focusableElements = Array.from((isModalOpen ? modal : document).querySelectorAll(focusableSelector))
+          .filter(el => el.offsetParent !== null && !el.disabled);
+
+        if (focusableElements.length === 0) return;
+
+        let activeEl = document.activeElement;
+
+        if (!focusableElements.includes(activeEl)) {
+          focusableElements[0].focus();
+          activeEl = focusableElements[0];
+        }
+
+        const activeRect = activeEl.getBoundingClientRect();
+        let bestCandidate = null;
+        let minDistance = Infinity;
+
+        const key = e.key;
+
+        if (key === 'Escape' || key === 'Backspace' || e.keyCode === 10009 || e.keyCode === 27) {
+          if (isModalOpen) {
+            closeSettingsModal();
+            e.preventDefault();
+            return;
+          }
+        }
+
+        if (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
+          if (key === 'ArrowLeft' || key === 'ArrowRight') return;
+        }
+
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+          e.preventDefault();
+
+          focusableElements.forEach(el => {
+            if (el === activeEl) return;
+            const rect = el.getBoundingClientRect();
+
+            let isDirectionValid = false;
+            if (key === 'ArrowUp' && rect.bottom <= activeRect.top + 10) isDirectionValid = true;
+            if (key === 'ArrowDown' && rect.top >= activeRect.bottom - 10) isDirectionValid = true;
+            if (key === 'ArrowLeft' && rect.right <= activeRect.left + 10) isDirectionValid = true;
+            if (key === 'ArrowRight' && rect.left >= activeRect.right - 10) isDirectionValid = true;
+
+            if (isDirectionValid) {
+              const activeCenter = { x: activeRect.left + activeRect.width / 2, y: activeRect.top + activeRect.height / 2 };
+              const targetCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+              const distance = Math.hypot(targetCenter.x - activeCenter.x, targetCenter.y - activeCenter.y);
+
+              if (distance < minDistance) {
+                minDistance = distance;
+                bestCandidate = el;
+              }
+            }
+          });
+
+          if (bestCandidate) {
+            bestCandidate.focus();
+            bestCandidate.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      });
+    }
+
     window.onload = function() {
       createStars();
       loadSavedConfig();
@@ -811,6 +897,9 @@
       setInterval(updateClocks, 1000);
       setInterval(() => { updateDateDisplay(new Date()); }, 60000);
       setInterval(() => { fetchMyQuranAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
+
+      setupTVNavigation();
+      document.getElementById('btn-audio-toggle').focus();
     };
   </script>
 </body>
