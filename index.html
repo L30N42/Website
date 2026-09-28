@@ -118,11 +118,11 @@
       z-index: 1;
     }
 
-    /* BULAN SABIT (DISESUAIKAN UNTUK TV 50") */
+    /* BULAN SABIT (Jarak diperlebar ke kanan) */
     .crescent-moon {
       position: absolute;
-      top: 20px;
-      right: 47.5%;
+      top: 40px;
+      right: 45%; /* Semakin besar persentasenya, posisi semakin bergeser ke kanan */
       width: 52px;
       height: 52px;
       border-radius: 50%;
@@ -183,8 +183,8 @@
       clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
     }
 
-    .lantern-left { right: 45.8%; animation: lantern-sway-left 6.5s ease-in-out infinite alternate; }
-    .lantern-right { right: 42.5%; animation: lantern-sway-right 7.5s ease-in-out infinite alternate 0.8s; }
+    .lantern-left { right: 42.5%; animation: lantern-sway-left 6.5s ease-in-out infinite alternate; }
+    .lantern-right { right: 34%; animation: lantern-sway-right 7.5s ease-in-out infinite alternate 0.8s; }
 
     /* Ukuran Detail Lentera Kiri */
     .lantern-left .lantern-chain { height: 20px; }
