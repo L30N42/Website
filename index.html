@@ -247,15 +247,36 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #051329; }
     ::-webkit-scrollbar-thumb { background: #28446b; border-radius: 3px; }
+
+    /* EFEK BLUR UNTUK PRAYER OVERLAY */
+    #prayer-overlay {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
   </style>
 </head>
 <body class="flex flex-col justify-between relative theme-isya">
 
+  <!-- OVERLAY SHOLAT & IQOMAH (FULL SCREEN) -->
+  <div id="prayer-overlay" class="fixed inset-0 z-[200] bg-[#030712]/95 hidden flex-col items-center justify-center transition-opacity duration-1000 opacity-0">
+    <div class="text-masjid-gold text-2xl 2xl:text-4xl font-bold mb-2 tracking-widest uppercase">SAATNYA</div>
+    <h1 id="overlay-title" class="font-display text-7xl 2xl:text-9xl font-black text-white mb-6 drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] text-center">ADZAN</h1>
+    <div id="overlay-subtitle" class="text-blue-200 text-xl 2xl:text-3xl font-medium tracking-wide text-center max-w-3xl">Harap tenang dan dengarkan adzan</div>
+    <div id="overlay-countdown" class="font-display text-[8rem] 2xl:text-[12rem] leading-none font-black text-masjid-gold mt-10 hidden drop-shadow-[0_0_30px_rgba(255,200,44,0.4)]">10:00</div>
+  </div>
+
   <!-- AUDIO & EMBED CONTAINER -->
   <audio id="lebaran-audio" loop preload="auto" src="https://strict-maroon-gl7sswod.edgeone.dev/"></audio>
-
   <audio id="adzan-audio" preload="auto">
     <source src="https://controlled-sapphire-x6hsmzjp.edgeone.dev/" type="audio/mpeg">
+  </audio>
+  
+  <!-- AUDIO BARU: SHALAWAT (JEDA IQOMAH) & IQOMAH -->
+  <audio id="shalawat-audio" loop preload="auto">
+    <source src="https://archive.org/download/shalawat-asyghil/Shalawat%20Asyghil.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="iqomah-audio" preload="auto">
+    <source src="https://archive.org/download/Iqomah/Iqomah.mp3" type="audio/mpeg">
   </audio>
 
   <!-- CONTAINER UNTUK EMBED MEDIA -->
@@ -495,8 +516,29 @@
             </select>
           </div>
           <div>
+            <label class="block text-sm text-blue-200 mb-1">Kecamatan (Opsi Spesifik Lokasi)</label>
+            <!-- Datalist untuk Kecamatan -->
+            <input id="input-kecamatan" list="list-kecamatan" type="text" placeholder="Contoh: Singaran Pati" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs focus:outline-none focus:border-masjid-gold">
+            <datalist id="list-kecamatan">
+              <option value="Singaran Pati"></option>
+              <option value="Gading Cempaka"></option>
+              <option value="Ratu Agung"></option>
+              <option value="Ratu Samban"></option>
+              <option value="Sungai Serut"></option>
+              <option value="Muara Bangka Hulu"></option>
+              <option value="Selebar"></option>
+              <option value="Kampung Melayu"></option>
+              <option value="Teluk Segara"></option>
+            </datalist>
+            <p class="text-[9px] text-blue-300 mt-1 italic">*Jika diisi, koordinat cuaca dan sholat diukur presisi di kecamatan ini.</p>
+          </div>
+          <div>
             <label class="block text-sm text-blue-200 mb-1">Nama Mushola</label>
             <input id="input-mosque-name" type="text" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
+          </div>
+          <div>
+            <label class="block text-sm text-blue-200 mb-1">Durasi Jeda Iqomah (Menit)</label>
+            <input id="input-iqomah-duration" type="number" min="1" max="30" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs">
           </div>
         </div>
 
@@ -514,7 +556,7 @@
         </div>
 
         <div class="p-3 bg-[#06152a] border border-[#28446b] rounded-lg space-y-3">
-          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-music mr-1"></i> Pengaturan Pemutar Musik & Media</label>
+          <label class="block text-sm font-bold text-masjid-gold"><i class="fa-solid fa-music mr-1"></i> Pengaturan Pemutar Musik & Media Background</label>
           
           <div class="grid grid-cols-3 gap-3">
             <div>
@@ -535,7 +577,7 @@
 
           <div>
             <div class="flex justify-between text-xs text-blue-200 mb-1">
-              <span>Volume Audio</span>
+              <span>Volume Keseluruhan</span>
               <span id="volume-val-text">50%</span>
             </div>
             <input id="input-audio-volume" type="range" min="0" max="1" step="0.05" value="0.5" oninput="updateVolumePreview(this.value)" class="w-full accent-masjid-gold">
@@ -575,8 +617,43 @@
     const JSONBIN_API_KEY = '$2a$10$Yc.E2D8VEhTeCwX/4enJz.H.jBofmMje5Kcrc.tKIX69UYUsRy4H2';
     const JSONBIN_BIN_ID = '6ab7a934ac6210605af777ad';
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+    const PERMANENT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
 
     let serverTimeOffset = 0;
+
+    // STATE PRAYER SYSTEM (NORMAL -> ADZAN -> IQOMAH -> SHOLAT)
+    let prayerState = 'NORMAL'; 
+    let currentPrayerName = '';
+    let iqomahTargetTime = null;
+    let sholatTargetTime = null;
+    let adzanFallbackTimer = null;
+
+    let appConfig = {
+      themeMode: "auto",
+      cityId: "-3.7928,102.2608,Asia/Jakarta",
+      kecamatan: "",
+      exactLat: "-3.7928",
+      exactLng: "102.2608",
+      iqomahDuration: 10,
+      mosqueName: "MUSHOLA AL-MUHAJIRIN",
+      address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
+      audioType: "direct",
+      audioUrl: PERMANENT_AUDIO_URL,
+      audioVolume: 0.5,
+      adminPassword: "1234",
+      imamSchedules: [],
+      eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
+      eventTime: "Kajian Ba'Da Ashar",
+      eventSpeaker: "Ust. Rosyid Marzuki",
+      marqueeText: "SHOLAT KARENA ALLAH SWT. | SELAMAT HARI RAYA IDUL FITRI MUBARAK | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.",
+      prayerTimes: {
+        imsak: "04:36", subuh: "04:46", syuruk: "05:57",
+        dzuhur: "12:07", ashar: "15:10", maghrib: "18:10", isya: "19:18"
+      }
+    };
+
+    let isAudioPlaying = false;
+    let currentThemeName = "";
 
     async function syncGoogleTime() {
       const syncStatusEl = document.getElementById('sync-status');
@@ -651,12 +728,27 @@
       }
     }
 
-    // FETCH CUACA OTOMATIS DARI OPEN-METEO API
+    // GEOCODING UNTUK MENCARI KOORDINAT KECAMATAN SPESIFIK
+    async function geocodeKecamatan(kecamatan, kota) {
+      try {
+        const query = encodeURIComponent(`${kecamatan} ${kota}`);
+        const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=1&language=id&format=json`);
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          return { lat: data.results[0].latitude, lng: data.results[0].longitude };
+        }
+      } catch(err) {
+        console.warn("Geocoding failed", err);
+      }
+      return null;
+    }
+
+    // FETCH CUACA OTOMATIS DARI OPEN-METEO API (Dengan Exact Location)
     async function fetchWeatherAPI() {
       try {
-        const parts = (appConfig.cityId || "-3.7928,102.2608,Asia/Jakarta").split(',');
-        const lat = parts[0] || "-3.7928";
-        const lng = parts[1] || "102.2608";
+        const lat = appConfig.exactLat || "-3.7928";
+        const lng = appConfig.exactLng || "102.2608";
+        
         const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`, { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
@@ -703,32 +795,6 @@
         rainContainer.innerHTML = '';
       }
     }
-
-    const PERMANENT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
-
-    let appConfig = {
-      themeMode: "auto",
-      cityId: "-3.7928,102.2608,Asia/Jakarta",
-      mosqueName: "MUSHOLA AL-MUHAJIRIN",
-      address: "Jl. Pembangunan No.6, Jemb. Kecil, Kec. Singaran Pati, Kota Bengkulu, Bengkulu 38224",
-      audioType: "direct",
-      audioUrl: PERMANENT_AUDIO_URL,
-      audioVolume: 0.5,
-      adminPassword: "1234",
-      imamSchedules: [],
-      eventTitle: "AGENDA KEGIATAN MUSHOLA AL-MUHAJIRIN",
-      eventTime: "Kajian Ba'Da Ashar",
-      eventSpeaker: "Ust. Rosyid Marzuki",
-      marqueeText: "SHOLAT KARENA ALLAH SWT. | SELAMAT HARI RAYA IDUL FITRI MUBARAK | MARI MENJAGA KEBERSIHAN, KETERTIBAN, DAN KETENTRAMAN DI SEKITAR LINGKUNGAN MUSHOLA | RAPATKAN DAN LURUSKAN SHAF.",
-      prayerTimes: {
-        imsak: "04:36", subuh: "04:46", syuruk: "05:57",
-        dzuhur: "12:07", ashar: "15:10", maghrib: "18:10", isya: "19:18"
-      }
-    };
-
-    let isAudioPlaying = false;
-    let lastAdzanTrigger = ""; 
-    let currentThemeName = "";
 
     function onAudioTypeChange(val) {
       const hint = document.getElementById('audio-type-hint');
@@ -837,21 +903,26 @@
       document.getElementById('volume-val-text').innerText = Math.round(val * 100) + '%';
       const audio = document.getElementById('lebaran-audio');
       const adzan = document.getElementById('adzan-audio');
+      const shalawat = document.getElementById('shalawat-audio');
+      const iqomah = document.getElementById('iqomah-audio');
+      
       if (audio) audio.volume = val;
       if (adzan) adzan.volume = val;
+      if (iqomah) iqomah.volume = val;
+      if (shalawat) shalawat.volume = val * 0.25; // Shalawat selalu 25% lebih pelan (samar-samar) dari volume utama
     }
 
-    async function fetchAladhanAPI(cityVal) {
+    // FETCH ALADHAN (Dengan Exact Location)
+    async function fetchAladhanAPI() {
       try {
         const today = getAccurateNow();
         const d = String(today.getDate()).padStart(2, '0');
         const m = String(today.getMonth() + 1).padStart(2, '0');
         const y = today.getFullYear();
 
-        const parts = (cityVal || "-3.7928,102.2608,Asia/Jakarta").split(',');
-        const lat = parts[0] || "-3.7928";
-        const lng = parts[1] || "102.2608";
-        const timeZone = parts[2] || "Asia/Jakarta";
+        const timeZone = appConfig.cityId ? appConfig.cityId.split(',')[2] : "Asia/Jakarta";
+        const lat = appConfig.exactLat || "-3.7928";
+        const lng = appConfig.exactLng || "102.2608";
 
         const response = await fetch(`https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${lat}&longitude=${lng}&method=20&timezonestring=${timeZone}&tune=0,2,0,2,2,2,0,0,0`, { cache: 'no-store' });
         const result = await response.json();
@@ -879,7 +950,21 @@
           }
         }
       } catch (err) {
-        console.warn("Aladhan API Offline:", err);
+        console.warn("Aladhan API Offline, mencoba memuat cache lokal:", err);
+        const today = getAccurateNow();
+        const d = String(today.getDate()).padStart(2, '0');
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const y = today.getFullYear();
+        const cached = localStorage.getItem('cached_prayer_times_' + d + m + y);
+        if (cached) {
+          try {
+            appConfig.prayerTimes = JSON.parse(cached);
+            for (let key in appConfig.prayerTimes) {
+              let el = document.getElementById(`time-${key}`);
+              if (el) el.innerText = appConfig.prayerTimes[key];
+            }
+          } catch(e) {}
+        }
       }
     }
 
@@ -965,7 +1050,7 @@
           }
         }
       } catch (err) {
-        console.warn("Gagal mengambil data dari JSONBin:", err);
+        console.warn("Gagal mengambil data dari JSONBin, menggunakan data lokal:", err);
       }
 
       const localData = localStorage.getItem('local_appConfig');
@@ -1011,8 +1096,10 @@
       if (citySelect) {
         const selectedOpt = citySelect.querySelector(`option[value="${appConfig.cityId}"]`);
         if (selectedOpt) {
-          const rawText = selectedOpt.innerText;
-          const cityNameOnly = rawText.split('(')[0].trim();
+          let cityNameOnly = selectedOpt.innerText.split('(')[0].trim();
+          if (appConfig.kecamatan && appConfig.kecamatan.trim() !== "") {
+             cityNameOnly = `KEC. ${appConfig.kecamatan.toUpperCase()}, ${cityNameOnly}`;
+          }
           document.getElementById('disp-city-name').innerText = cityNameOnly;
         }
       }
@@ -1140,45 +1227,134 @@
       document.getElementById('disp-date-full').innerText = `${dayName}, ${dayNum} ${monthName} ${year} | ${hijriString}`;
     }
 
-    function playAdzan() {
-      const audioBg = document.getElementById('lebaran-audio');
-      const adzanBg = document.getElementById('adzan-audio');
+    // --- MANAJEMEN STATE PRAYER (ADZAN -> IQOMAH -> SHOLAT) ---
+    function triggerAdzan(prayerName) {
+      if(prayerName === 'imsak' || prayerName === 'syuruk') return;
       
+      prayerState = 'ADZAN';
+      currentPrayerName = prayerName.toUpperCase();
+      
+      const overlay = document.getElementById('prayer-overlay');
+      overlay.classList.remove('hidden'); 
+      overlay.classList.add('flex');
+      setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }, 50);
+
+      document.getElementById('overlay-title').innerText = `ADZAN ${currentPrayerName}`;
+      document.getElementById('overlay-subtitle').innerText = "Harap tenang dan dengarkan adzan";
+      document.getElementById('overlay-countdown').classList.add('hidden');
+
+      const audioBg = document.getElementById('lebaran-audio');
       if (audioBg && isAudioPlaying) {
         audioBg.pause();
       }
 
-      if (adzanBg) {
-        adzanBg.volume = appConfig.audioVolume || 0.5;
-        adzanBg.play().catch(e => console.log("Adzan AutoPlay terhalang browser: ", e));
+      const adzanAudio = document.getElementById('adzan-audio');
+      if (adzanAudio) {
+        adzanAudio.volume = appConfig.audioVolume || 0.5;
+        adzanAudio.play().catch(e => {
+          console.warn("AutoPlay Adzan terhalang. Menuju Iqomah dalam 5 detik.");
+          adzanFallbackTimer = setTimeout(triggerIqomahWait, 5000);
+        });
         
-        adzanBg.onended = function() {
-          if (audioBg && isAudioPlaying && (appConfig.audioType === 'direct')) {
-            audioBg.play();
-          }
+        adzanAudio.onended = function() {
+          clearTimeout(adzanFallbackTimer);
+          if (prayerState === 'ADZAN') triggerIqomahWait();
         };
+
+        // Fallback kalau adzan tersangkut
+        adzanFallbackTimer = setTimeout(() => {
+          if (prayerState === 'ADZAN') triggerIqomahWait();
+        }, 240000); 
+      }
+    }
+
+    function triggerIqomahWait() {
+      prayerState = 'IQOMAH';
+      const duration = appConfig.iqomahDuration || 10;
+      iqomahTargetTime = new Date(Date.now() + serverTimeOffset + (duration * 60000));
+      
+      document.getElementById('overlay-title').innerText = `MENUJU IQOMAH`;
+      document.getElementById('overlay-subtitle').innerText = "Silahkan laksanakan sholat sunnah & perbanyak dzikir";
+      document.getElementById('overlay-countdown').classList.remove('hidden');
+
+      const shalawat = document.getElementById('shalawat-audio');
+      if(shalawat) {
+        shalawat.volume = (appConfig.audioVolume || 0.5) * 0.25; // Volume samar-samar (25% dari config volume utama)
+        shalawat.play().catch(e => console.log("Shalawat block", e));
+      }
+    }
+
+    function triggerSholat() {
+      prayerState = 'SHOLAT';
+      sholatTargetTime = new Date(Date.now() + serverTimeOffset + (10 * 60000)); // Sholat diasumsikan 10 Menit, lalu overlay hilang
+      
+      document.getElementById('overlay-title').innerText = `LURUSKAN SHAF`;
+      document.getElementById('overlay-subtitle').innerText = "Sholat berjamaah akan segera dimulai";
+      document.getElementById('overlay-countdown').classList.add('hidden');
+
+      const shalawat = document.getElementById('shalawat-audio');
+      if(shalawat) { 
+        shalawat.pause(); 
+        shalawat.currentTime = 0; 
+      }
+
+      const iqomah = document.getElementById('iqomah-audio');
+      if(iqomah) {
+        iqomah.volume = appConfig.audioVolume || 0.5;
+        iqomah.play().catch(e => console.log(e));
+      }
+    }
+
+    function endPrayerState() {
+      prayerState = 'NORMAL';
+      const overlay = document.getElementById('prayer-overlay');
+      overlay.classList.remove('opacity-100'); 
+      overlay.classList.add('opacity-0');
+      
+      setTimeout(() => { 
+        overlay.classList.add('hidden'); 
+        overlay.classList.remove('flex'); 
+      }, 1000);
+      
+      const audioBg = document.getElementById('lebaran-audio');
+      if (audioBg && isAudioPlaying && appConfig.audioType === 'direct') { 
+        audioBg.play().catch(e => {}); 
       }
     }
 
     function updateClocks() {
       const now = getAccurateNow();
-      const currentHoursMinutes = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const hStr = String(now.getHours()).padStart(2, '0');
+      const mStr = String(now.getMinutes()).padStart(2, '0');
+      const currentHoursMinutes = `${hStr}:${mStr}`;
       const currentSec = String(now.getSeconds()).padStart(2, '0');
 
       document.getElementById('main-digital-clock').innerText = `${currentHoursMinutes}:${currentSec}`;
-
       updateDynamicTheme(now);
 
-      const adzanTimes = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-      adzanTimes.forEach(pKey => {
-        if (appConfig.prayerTimes[pKey] === currentHoursMinutes && currentSec === "00") {
-          const triggerId = `${pKey}-${currentHoursMinutes}`;
-          if (lastAdzanTrigger !== triggerId) {
-            lastAdzanTrigger = triggerId;
-            playAdzan();
+      // PENGATURAN STATE MACHINE WAKTU SHOLAT
+      if (prayerState === 'NORMAL') {
+        const adzanTimes = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+        for (let pKey of adzanTimes) {
+          if (appConfig.prayerTimes[pKey] === currentHoursMinutes && currentSec === "00") {
+             triggerAdzan(pKey);
+             break;
           }
         }
-      });
+      } else if (prayerState === 'IQOMAH') {
+        const diffSec = Math.floor((iqomahTargetTime - now) / 1000);
+        if (diffSec <= 0) {
+          triggerSholat();
+        } else {
+          const m = String(Math.floor(diffSec / 60)).padStart(2, '0');
+          const s = String(diffSec % 60).padStart(2, '0');
+          document.getElementById('overlay-countdown').innerText = `${m}:${s}`;
+        }
+      } else if (prayerState === 'SHOLAT') {
+        if (now >= sholatTargetTime) {
+          endPrayerState();
+        }
+      }
 
       const ramadhanTarget = new Date('2027-02-08T00:00:00');
       const diffDays = Math.ceil((ramadhanTarget - now) / (1000 * 60 * 60 * 24));
@@ -1189,46 +1365,6 @@
         document.getElementById('ramadhan-countdown-text').innerText = `MARHABAN YA RAMADHAN 1448 H`;
       } else {
         document.getElementById('ramadhan-countdown-text').innerText = `BULAN RAMADHAN 1448 H TELAH TIBA`;
-      }
-
-      const prayerList = [
-        { key: 'imsak', name: 'IMSAK', time: appConfig.prayerTimes.imsak },
-        { key: 'subuh', name: 'SUBUH', time: appConfig.prayerTimes.subuh },
-        { key: 'syuruk', name: 'SYURUQ', time: appConfig.prayerTimes.syuruk },
-        { key: 'dzuhur', name: 'DZUHUR', time: appConfig.prayerTimes.dzuhur },
-        { key: 'ashar', name: 'ASHAR', time: appConfig.prayerTimes.ashar },
-        { key: 'maghrib', name: 'MAGHRIB', time: appConfig.prayerTimes.maghrib },
-        { key: 'isya', name: 'ISYA', time: appConfig.prayerTimes.isya }
-      ];
-
-      let nextPrayer = null;
-      let targetDate = null;
-
-      for (const p of prayerList) {
-        if (!p.time) continue;
-        const [pHour, pMin] = p.time.split(':').map(Number);
-        const pDate = new Date(now);
-        pDate.setHours(pHour, pMin, 0, 0);
-
-        if (pDate > now) {
-          nextPrayer = p; targetDate = pDate; break;
-        }
-      }
-
-      if (!nextPrayer) {
-        nextPrayer = prayerList[1];
-        const [pHour, pMin] = nextPrayer.time.split(':').map(Number);
-        targetDate = new Date(now);
-        targetDate.setDate(targetDate.getDate() + 1);
-        targetDate.setHours(pHour, pMin, 0, 0);
-      }
-
-      if (targetDate) {
-        const diffSec = Math.floor((targetDate - now) / 1000);
-        const h = String(Math.floor(diffSec / 3600)).padStart(2, '0');
-        const m = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
-        const s = String(diffSec % 60).padStart(2, '0');
-        document.getElementById('countdown-label').innerText = `MENUJU ${nextPrayer.name} -${h}:${m}:${s}`;
       }
 
       let todayString = getFormattedDateString(now);
@@ -1246,24 +1382,67 @@
          document.getElementById('disp-imam-ashar').innerText = `IMAM ASHAR: ${asharName}`;
       }
 
-      prayerList.forEach(p => {
-        const rowEl = document.getElementById(`item-${p.key}`);
-        if (!rowEl) return;
-        
-        if (p.key === nextPrayer.key) {
-          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-masjid-gold text-black shadow-lg transition-all scale-[1.02] border-none font-bold z-10';
-          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-black';
-          rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-blue-300', 'text-black');
-          rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-black';
-        } else {
-          rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/80 backdrop-blur-md border border-white/10 transition-all scale-100 z-0';
-          rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white';
-          if (!rowEl.querySelector('i').className.includes('text-blue-300')) {
-             rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-black', 'text-blue-300');
+      // Hitung Mundur Sholat (Hanya berjalan di UI saat status Normal)
+      if (prayerState === 'NORMAL') {
+        const prayerList = [
+          { key: 'imsak', name: 'IMSAK', time: appConfig.prayerTimes.imsak },
+          { key: 'subuh', name: 'SUBUH', time: appConfig.prayerTimes.subuh },
+          { key: 'syuruk', name: 'SYURUQ', time: appConfig.prayerTimes.syuruk },
+          { key: 'dzuhur', name: 'DZUHUR', time: appConfig.prayerTimes.dzuhur },
+          { key: 'ashar', name: 'ASHAR', time: appConfig.prayerTimes.ashar },
+          { key: 'maghrib', name: 'MAGHRIB', time: appConfig.prayerTimes.maghrib },
+          { key: 'isya', name: 'ISYA', time: appConfig.prayerTimes.isya }
+        ];
+
+        let nextPrayer = null;
+        let targetDate = null;
+
+        for (const p of prayerList) {
+          if (!p.time) continue;
+          const [pHour, pMin] = p.time.split(':').map(Number);
+          const pDate = new Date(now);
+          pDate.setHours(pHour, pMin, 0, 0);
+
+          if (pDate > now) {
+            nextPrayer = p; targetDate = pDate; break;
           }
-          rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-white';
         }
-      });
+
+        if (!nextPrayer) {
+          nextPrayer = prayerList[1];
+          const [pHour, pMin] = nextPrayer.time.split(':').map(Number);
+          targetDate = new Date(now);
+          targetDate.setDate(targetDate.getDate() + 1);
+          targetDate.setHours(pHour, pMin, 0, 0);
+        }
+
+        if (targetDate) {
+          const diffSec = Math.floor((targetDate - now) / 1000);
+          const h = String(Math.floor(diffSec / 3600)).padStart(2, '0');
+          const m = String(Math.floor((diffSec % 3600) / 60)).padStart(2, '0');
+          const s = String(diffSec % 60).padStart(2, '0');
+          document.getElementById('countdown-label').innerText = `MENUJU ${nextPrayer.name} -${h}:${m}:${s}`;
+        }
+
+        prayerList.forEach(p => {
+          const rowEl = document.getElementById(`item-${p.key}`);
+          if (!rowEl) return;
+          
+          if (p.key === nextPrayer.key) {
+            rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-masjid-gold text-black shadow-lg transition-all scale-[1.02] border-none font-bold z-10';
+            rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-black';
+            rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-blue-300', 'text-black');
+            rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-black';
+          } else {
+            rowEl.className = 'flex items-center justify-between px-5 py-2 2xl:px-7 2xl:py-3 rounded-full bg-[#06152a]/80 backdrop-blur-md border border-white/10 transition-all scale-100 z-0';
+            rowEl.querySelector('div:first-child').className = 'flex items-center gap-3 2xl:gap-4 text-lg 2xl:text-xl font-bold tracking-wider uppercase text-white';
+            if (!rowEl.querySelector('i').className.includes('text-blue-300')) {
+               rowEl.querySelector('i').className = rowEl.querySelector('i').className.replace('text-black', 'text-blue-300');
+            }
+            rowEl.querySelector('div:last-child').className = 'font-display text-2xl 2xl:text-3xl font-black text-white';
+          }
+        });
+      }
     }
 
     function openSettingsModal() {
@@ -1271,6 +1450,8 @@
       
       document.getElementById('input-theme-mode').value = appConfig.themeMode || 'auto';
       document.getElementById('input-city-id').value = appConfig.cityId || "-3.7928,102.2608,Asia/Jakarta";
+      document.getElementById('input-kecamatan').value = appConfig.kecamatan || "";
+      document.getElementById('input-iqomah-duration').value = appConfig.iqomahDuration || 10;
       document.getElementById('input-mosque-name').value = appConfig.mosqueName;
       document.getElementById('input-mosque-address').value = appConfig.address;
       document.getElementById('input-new-pass').value = '';
@@ -1310,10 +1491,12 @@
       btnSave.disabled = true;
 
       statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-blue-900/80 text-blue-200 border border-blue-500 block";
-      statusMsg.innerText = "Sedang mengunggah data ke server...";
+      statusMsg.innerText = "Melacak koordinat dan menyimpan data...";
 
       appConfig.themeMode = document.getElementById('input-theme-mode').value;
-      const newCityId = document.getElementById('input-city-id').value;
+      appConfig.cityId = document.getElementById('input-city-id').value;
+      appConfig.kecamatan = document.getElementById('input-kecamatan').value.trim();
+      appConfig.iqomahDuration = parseInt(document.getElementById('input-iqomah-duration').value) || 10;
       appConfig.mosqueName = document.getElementById('input-mosque-name').value.trim();
       appConfig.address = document.getElementById('input-mosque-address').value.trim();
       
@@ -1348,17 +1531,31 @@
       appConfig.eventSpeaker = document.getElementById('input-event-speaker').value.trim();
       appConfig.marqueeText = document.getElementById('input-marquee').value.trim();
 
-      if (newCityId !== appConfig.cityId) {
-        appConfig.cityId = newCityId;
-        await fetchAladhanAPI(appConfig.cityId);
-        await fetchWeatherAPI();
+      // MENCARI KOORDINAT BARU JIKA KECAMATAN DIISI
+      const parts = appConfig.cityId.split(',');
+      let baseLat = parts[0]; 
+      let baseLng = parts[1];
+      
+      if(appConfig.kecamatan !== "") {
+        const citySelect = document.getElementById('input-city-id');
+        const cityName = citySelect.options[citySelect.selectedIndex].text.split('(')[0].trim();
+        const geo = await geocodeKecamatan(appConfig.kecamatan, cityName);
+        if(geo) { 
+          baseLat = geo.lat; 
+          baseLng = geo.lng; 
+        }
       }
+      appConfig.exactLat = baseLat;
+      appConfig.exactLng = baseLng;
+
+      await fetchAladhanAPI(); 
+      await fetchWeatherAPI(); 
 
       const success = await saveConfigToJSONBin();
 
       if (success) {
         statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-green-900/80 text-green-200 border border-green-500 block";
-        statusMsg.innerText = "✓ Pengaturan berhasil disimpan ke Cloud & Lokal!";
+        statusMsg.innerText = "✓ Tersimpan dengan presisi lokasi!";
       } else {
         statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-yellow-900/80 text-yellow-200 border border-yellow-500 block";
         statusMsg.innerText = "⚠ Tersimpan di lokal TV ini (Gagal terhubung ke Cloud).";
@@ -1372,7 +1569,7 @@
 
       setTimeout(() => {
         closeSettingsModal();
-      }, 1200);
+      }, 1500);
     }
 
     function setupTVNavigation() {
@@ -1460,13 +1657,13 @@
       
       const now = getAccurateNow();
       updateDateDisplay(now);
-      await fetchAladhanAPI(appConfig.cityId);
-      await fetchWeatherAPI(); // Muat data cuaca pertama kali
+      await fetchAladhanAPI();
+      await fetchWeatherAPI(); 
       
       setInterval(updateClocks, 1000);
       setInterval(() => { updateDateDisplay(getAccurateNow()); }, 60000);
-      setInterval(() => { fetchAladhanAPI(appConfig.cityId); }, 1000 * 60 * 60 * 6);
-      setInterval(fetchWeatherAPI, 1000 * 60 * 30); // Perbarui cuaca tiap 30 menit
+      setInterval(() => { fetchAladhanAPI(); }, 1000 * 60 * 60 * 6);
+      setInterval(fetchWeatherAPI, 1000 * 60 * 30); 
       setInterval(syncGoogleTime, 1000 * 60 * 30);
       
       setInterval(() => {
