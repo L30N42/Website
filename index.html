@@ -614,8 +614,8 @@
   </div>
 
   <script>
-    const JSONBIN_API_KEY = '$2a$10$Yc.E2D8VEhTeCwX/4enJz.H.jBofmMje5Kcrc.tKIX69UYUsRy4H2';
-    const JSONBIN_BIN_ID = '6ab7a934ac6210605af777ad';
+    const JSONBIN_API_KEY = '$2a$10$f3FCdZeYpS3pkuPrBAeSp.kRgFTHQMuogDbtceZGl96Eij3zgAKyO';
+    const JSONBIN_BIN_ID = '6ac64c84ffd5d1605356193f';
     const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
     const PERMANENT_AUDIO_URL = "https://strict-maroon-gl7sswod.edgeone.dev/";
 
@@ -1034,25 +1034,25 @@
           method: 'GET',
           headers: {
             'X-Master-Key': JSONBIN_API_KEY,
-            'X-Access-Key': JSONBIN_API_KEY,
-            'X-Bin-Meta': 'false'
+            'X-Bin-Meta': 'false' // Meminta data bersih tanpa metadata tambahan
           }
         });
         if (response.ok) {
           const resData = await response.json();
-          if (resData) {
-            const dataToApply = resData.record ? resData.record : resData;
+          const dataToApply = resData.record ? resData.record : resData;
+          if (dataToApply && typeof dataToApply === 'object') {
             Object.assign(appConfig, dataToApply);
             localStorage.setItem('local_appConfig', JSON.stringify(appConfig));
             renderDOMConfig();
             updateClocks();
-            return;
+            return true;
           }
         }
       } catch (err) {
         console.warn("Gagal mengambil data dari JSONBin, menggunakan data lokal:", err);
       }
 
+      // Fallback ke penyimpanan lokal jika server mati/gagal
       const localData = localStorage.getItem('local_appConfig');
       if (localData) {
         try {
@@ -1061,9 +1061,11 @@
           updateClocks();
         } catch(e){}
       }
+      return false;
     }
 
     async function saveConfigToJSONBin() {
+      // Simpan ke local storage terlebih dahulu agar data tidak hilang
       localStorage.setItem('local_appConfig', JSON.stringify(appConfig));
       try {
         const response = await fetch(JSONBIN_URL, {
@@ -1071,16 +1073,21 @@
           headers: {
             'Content-Type': 'application/json',
             'X-Master-Key': JSONBIN_API_KEY,
-            'X-Access-Key': JSONBIN_API_KEY
+            'X-Bin-Versioning': 'false' // PENTING: Mencegah error limit versi di akun JSONBin gratis
           },
           body: JSON.stringify(appConfig)
         });
 
-        if (!response.ok) throw new Error(`Server status: ${response.status}`);
-        return true;
+        if (!response.ok) {
+          // Tangkap pesan error spesifik dari JSONBin
+          const errData = await response.json().catch(() => ({}));
+          const errMsg = errData.message || response.statusText;
+          throw new Error(`[${response.status}] ${errMsg}`);
+        }
+        return { success: true };
       } catch (err) {
         console.error("Gagal menyimpan ke JSONBin:", err);
-        return false;
+        return { success: false, message: err.message };
       }
     }
 
@@ -1491,7 +1498,7 @@
       btnSave.disabled = true;
 
       statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-blue-900/80 text-blue-200 border border-blue-500 block";
-      statusMsg.innerText = "Melacak koordinat dan menyimpan data...";
+      statusMsg.innerText = "Menyinkronkan data ke server global...";
 
       appConfig.themeMode = document.getElementById('input-theme-mode').value;
       appConfig.cityId = document.getElementById('input-city-id').value;
@@ -1531,7 +1538,6 @@
       appConfig.eventSpeaker = document.getElementById('input-event-speaker').value.trim();
       appConfig.marqueeText = document.getElementById('input-marquee').value.trim();
 
-      // MENCARI KOORDINAT BARU JIKA KECAMATAN DIISI
       const parts = appConfig.cityId.split(',');
       let baseLat = parts[0]; 
       let baseLng = parts[1];
@@ -1551,14 +1557,21 @@
       await fetchAladhanAPI(); 
       await fetchWeatherAPI(); 
 
-      const success = await saveConfigToJSONBin();
+      // Panggil fungsi save yang baru
+      const result = await saveConfigToJSONBin();
 
-      if (success) {
+      if (result.success) {
         statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-green-900/80 text-green-200 border border-green-500 block";
-        statusMsg.innerText = "✓ Tersimpan dengan presisi lokasi!";
+        statusMsg.innerText = "✓ Berhasil tersimpan dan tersinkron ke semua perangkat!";
+        
+        // Hanya tutup modal otomatis jika berhasil
+        setTimeout(() => {
+          closeSettingsModal();
+        }, 1500);
       } else {
-        statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-yellow-900/80 text-yellow-200 border border-yellow-500 block";
-        statusMsg.innerText = "⚠ Tersimpan di lokal TV ini (Gagal terhubung ke Cloud).";
+        // Tampilkan pesan error spesifik jika gagal
+        statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-red-900/80 text-red-200 border border-red-500 block";
+        statusMsg.innerText = `⚠ Error Server: ${result.message}`;
       }
 
       btnSave.innerText = 'Simpan';
@@ -1566,10 +1579,6 @@
 
       renderDOMConfig();
       updateClocks();
-
-      setTimeout(() => {
-        closeSettingsModal();
-      }, 1500);
     }
 
     function setupTVNavigation() {
@@ -1666,12 +1675,13 @@
       setInterval(fetchWeatherAPI, 1000 * 60 * 30); 
       setInterval(syncGoogleTime, 1000 * 60 * 30);
       
+      // Sinkronisasi otomatis ke server tiap 5 menit (300000ms) agar tidak melanggar limit API
       setInterval(() => {
         const modal = document.getElementById('settings-modal');
         if (modal.classList.contains('hidden')) {
           loadConfigFromJSONBin();
         }
-      }, 8000);
+      }, 300000);
 
       setupTVNavigation();
       document.getElementById('btn-audio-toggle').focus();
