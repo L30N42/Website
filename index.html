@@ -248,7 +248,6 @@
     ::-webkit-scrollbar-track { background: #051329; }
     ::-webkit-scrollbar-thumb { background: #28446b; border-radius: 3px; }
 
-    /* EFEK BLUR UNTUK PRAYER OVERLAY */
     #prayer-overlay {
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -267,11 +266,13 @@
 
   <!-- AUDIO & EMBED CONTAINER -->
   <audio id="lebaran-audio" loop preload="auto" src="https://strict-maroon-gl7sswod.edgeone.dev/"></audio>
+  
+  <!-- DIPERBAIKI: Audio Adzan Menggunakan Link MP3 Valid -->
   <audio id="adzan-audio" preload="auto">
-    <source src="https://controlled-sapphire-x6hsmzjp.edgeone.dev/" type="audio/mpeg">
+    <source src="https://archive.org/download/Adzan_201804/Adzan.mp3" type="audio/mpeg">
   </audio>
   
-  <!-- AUDIO BARU: SHALAWAT (JEDA IQOMAH) & IQOMAH -->
+  <!-- AUDIO: SHALAWAT (JEDA IQOMAH) & IQOMAH -->
   <audio id="shalawat-audio" loop preload="auto">
     <source src="https://archive.org/download/shalawat-asyghil/Shalawat%20Asyghil.mp3" type="audio/mpeg">
   </audio>
@@ -306,7 +307,6 @@
 
   <!-- KONTROL UTAMA -->
   <div class="absolute top-3 right-6 z-50 flex items-center gap-2">
-    <!-- SYNC INDICATOR -->
     <div id="sync-status" class="px-2.5 py-1 bg-black/40 border border-white/10 rounded-lg text-[10px] text-emerald-400 flex items-center gap-1.5 backdrop-blur-sm">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Time Sync
     </div>
@@ -336,7 +336,6 @@
         <div class="flex flex-wrap items-center gap-3 text-sm font-bold mt-2">
           <span id="disp-date-full" class="text-masjid-gold drop-shadow-sm">--</span>
           
-          <!-- FITUR CUACA DINAMIS -->
           <span id="disp-weather" class="text-blue-300 flex items-center gap-1.5">
             <i id="disp-weather-icon" class="fa-solid fa-cloud-sun"></i> 
             <span id="disp-weather-text">Memuat Cuaca...</span>
@@ -359,7 +358,6 @@
       </div>
 
       <div class="space-y-2 2xl:space-y-3">
-        
         <div class="flex flex-col gap-1.5 2xl:gap-2">
           <div class="inline-flex items-center w-fit bg-[#0a1b34]/80 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-1.5 2xl:px-5 2xl:py-2 text-white font-medium text-xs 2xl:text-sm">
             <i class="fa-solid fa-user-tie mr-2 text-masjid-gold"></i> 
@@ -517,20 +515,20 @@
           </div>
           <div>
             <label class="block text-sm text-blue-200 mb-1">Kecamatan (Opsi Spesifik Lokasi)</label>
-            <!-- Datalist untuk Kecamatan -->
-            <input id="input-kecamatan" list="list-kecamatan" type="text" placeholder="Contoh: Singaran Pati" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs focus:outline-none focus:border-masjid-gold">
-            <datalist id="list-kecamatan">
-              <option value="Singaran Pati"></option>
-              <option value="Gading Cempaka"></option>
-              <option value="Ratu Agung"></option>
-              <option value="Ratu Samban"></option>
-              <option value="Sungai Serut"></option>
-              <option value="Muara Bangka Hulu"></option>
-              <option value="Selebar"></option>
-              <option value="Kampung Melayu"></option>
-              <option value="Teluk Segara"></option>
-            </datalist>
-            <p class="text-[9px] text-blue-300 mt-1 italic">*Jika diisi, koordinat cuaca dan sholat diukur presisi di kecamatan ini.</p>
+            <!-- DIPERBAIKI: Mengubah Input Datalist menjadi Select Dropdown standar agar bisa dipilih via Remote TV -->
+            <select id="input-kecamatan" class="w-full bg-[#051329] border border-[#28446b] rounded-md px-3 py-2 text-white text-xs focus:outline-none focus:border-masjid-gold">
+              <option value="">-- Pilih Kecamatan (Opsional) --</option>
+              <option value="Singaran Pati">Singaran Pati</option>
+              <option value="Gading Cempaka">Gading Cempaka</option>
+              <option value="Ratu Agung">Ratu Agung</option>
+              <option value="Ratu Samban">Ratu Samban</option>
+              <option value="Sungai Serut">Sungai Serut</option>
+              <option value="Muara Bangka Hulu">Muara Bangka Hulu</option>
+              <option value="Selebar">Selebar</option>
+              <option value="Kampung Melayu">Kampung Melayu</option>
+              <option value="Teluk Segara">Teluk Segara</option>
+            </select>
+            <p class="text-[9px] text-blue-300 mt-1 italic">*Jika dipilih, koordinat cuaca dan sholat diukur presisi di kecamatan ini.</p>
           </div>
           <div>
             <label class="block text-sm text-blue-200 mb-1">Nama Mushola</label>
@@ -621,7 +619,6 @@
 
     let serverTimeOffset = 0;
 
-    // STATE PRAYER SYSTEM (NORMAL -> ADZAN -> IQOMAH -> SHOLAT)
     let prayerState = 'NORMAL'; 
     let currentPrayerName = '';
     let iqomahTargetTime = null;
@@ -712,7 +709,6 @@
       }
     }
 
-    // FUNGSI EFEK HUJAN DI BACKGROUND
     function createRainDrops() {
       const container = document.getElementById('rain-container');
       container.innerHTML = '';
@@ -728,7 +724,6 @@
       }
     }
 
-    // GEOCODING UNTUK MENCARI KOORDINAT KECAMATAN SPESIFIK
     async function geocodeKecamatan(kecamatan, kota) {
       try {
         const query = encodeURIComponent(`${kecamatan} ${kota}`);
@@ -743,7 +738,6 @@
       return null;
     }
 
-    // FETCH CUACA OTOMATIS DARI OPEN-METEO API (Dengan Exact Location)
     async function fetchWeatherAPI() {
       try {
         const lat = appConfig.exactLat || "-3.7928";
@@ -768,7 +762,6 @@
       let iconClass = "fa-solid fa-sun text-yellow-400";
       let isRaining = false;
 
-      // Kode WMO Weather interpretation (Open-Meteo): 51-67, 80-82, 95-99 adalah kondisi hujan/badai
       if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || (code >= 95 && code <= 99)) {
         text = "Hujan";
         iconClass = "fa-solid fa-cloud-rain text-blue-400";
@@ -909,10 +902,9 @@
       if (audio) audio.volume = val;
       if (adzan) adzan.volume = val;
       if (iqomah) iqomah.volume = val;
-      if (shalawat) shalawat.volume = val * 0.25; // Shalawat selalu 25% lebih pelan (samar-samar) dari volume utama
+      if (shalawat) shalawat.volume = val * 0.25; // Shalawat selalu 25% lebih pelan (samar-samar)
     }
 
-    // FETCH ALADHAN (Dengan Exact Location)
     async function fetchAladhanAPI() {
       try {
         const today = getAccurateNow();
@@ -950,7 +942,7 @@
           }
         }
       } catch (err) {
-        console.warn("Aladhan API Offline, mencoba memuat cache lokal:", err);
+        console.warn("Aladhan API Offline, memuat cache lokal:", err);
         const today = getAccurateNow();
         const d = String(today.getDate()).padStart(2, '0');
         const m = String(today.getMonth() + 1).padStart(2, '0');
@@ -1034,7 +1026,7 @@
           method: 'GET',
           headers: {
             'X-Master-Key': JSONBIN_API_KEY,
-            'X-Bin-Meta': 'false' // Meminta data bersih tanpa metadata tambahan
+            'X-Bin-Meta': 'false'
           }
         });
         if (response.ok) {
@@ -1052,7 +1044,6 @@
         console.warn("Gagal mengambil data dari JSONBin, menggunakan data lokal:", err);
       }
 
-      // Fallback ke penyimpanan lokal jika server mati/gagal
       const localData = localStorage.getItem('local_appConfig');
       if (localData) {
         try {
@@ -1065,7 +1056,6 @@
     }
 
     async function saveConfigToJSONBin() {
-      // Simpan ke local storage terlebih dahulu agar data tidak hilang
       localStorage.setItem('local_appConfig', JSON.stringify(appConfig));
       try {
         const response = await fetch(JSONBIN_URL, {
@@ -1073,13 +1063,12 @@
           headers: {
             'Content-Type': 'application/json',
             'X-Master-Key': JSONBIN_API_KEY,
-            'X-Bin-Versioning': 'false' // PENTING: Mencegah error limit versi di akun JSONBin gratis
+            'X-Bin-Versioning': 'false'
           },
           body: JSON.stringify(appConfig)
         });
 
         if (!response.ok) {
-          // Tangkap pesan error spesifik dari JSONBin
           const errData = await response.json().catch(() => ({}));
           const errMsg = errData.message || response.statusText;
           throw new Error(`[${response.status}] ${errMsg}`);
@@ -1234,7 +1223,7 @@
       document.getElementById('disp-date-full').innerText = `${dayName}, ${dayNum} ${monthName} ${year} | ${hijriString}`;
     }
 
-    // --- MANAJEMEN STATE PRAYER (ADZAN -> IQOMAH -> SHOLAT) ---
+    // --- PENGELOLAAN STATE PRAYER & SHALAWAT SAMAR-SAMAR ---
     function triggerAdzan(prayerName) {
       if(prayerName === 'imsak' || prayerName === 'syuruk') return;
       
@@ -1257,6 +1246,7 @@
 
       const adzanAudio = document.getElementById('adzan-audio');
       if (adzanAudio) {
+        adzanAudio.currentTime = 0;
         adzanAudio.volume = appConfig.audioVolume || 0.5;
         adzanAudio.play().catch(e => {
           console.warn("AutoPlay Adzan terhalang. Menuju Iqomah dalam 5 detik.");
@@ -1268,7 +1258,6 @@
           if (prayerState === 'ADZAN') triggerIqomahWait();
         };
 
-        // Fallback kalau adzan tersangkut
         adzanFallbackTimer = setTimeout(() => {
           if (prayerState === 'ADZAN') triggerIqomahWait();
         }, 240000); 
@@ -1284,16 +1273,18 @@
       document.getElementById('overlay-subtitle').innerText = "Silahkan laksanakan sholat sunnah & perbanyak dzikir";
       document.getElementById('overlay-countdown').classList.remove('hidden');
 
+      // Memutar Sholawat Ashghillin secara samar-samar (25% dari volume utama)
       const shalawat = document.getElementById('shalawat-audio');
       if(shalawat) {
-        shalawat.volume = (appConfig.audioVolume || 0.5) * 0.25; // Volume samar-samar (25% dari config volume utama)
+        shalawat.currentTime = 0;
+        shalawat.volume = (appConfig.audioVolume || 0.5) * 0.25;
         shalawat.play().catch(e => console.log("Shalawat block", e));
       }
     }
 
     function triggerSholat() {
       prayerState = 'SHOLAT';
-      sholatTargetTime = new Date(Date.now() + serverTimeOffset + (10 * 60000)); // Sholat diasumsikan 10 Menit, lalu overlay hilang
+      sholatTargetTime = new Date(Date.now() + serverTimeOffset + (10 * 60000));
       
       document.getElementById('overlay-title').innerText = `LURUSKAN SHAF`;
       document.getElementById('overlay-subtitle').innerText = "Sholat berjamaah akan segera dimulai";
@@ -1318,6 +1309,12 @@
       overlay.classList.remove('opacity-100'); 
       overlay.classList.add('opacity-0');
       
+      const shalawat = document.getElementById('shalawat-audio');
+      if(shalawat) { 
+        shalawat.pause(); 
+        shalawat.currentTime = 0; 
+      }
+
       setTimeout(() => { 
         overlay.classList.add('hidden'); 
         overlay.classList.remove('flex'); 
@@ -1339,7 +1336,6 @@
       document.getElementById('main-digital-clock').innerText = `${currentHoursMinutes}:${currentSec}`;
       updateDynamicTheme(now);
 
-      // PENGATURAN STATE MACHINE WAKTU SHOLAT
       if (prayerState === 'NORMAL') {
         const adzanTimes = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
         for (let pKey of adzanTimes) {
@@ -1389,7 +1385,6 @@
          document.getElementById('disp-imam-ashar').innerText = `IMAM ASHAR: ${asharName}`;
       }
 
-      // Hitung Mundur Sholat (Hanya berjalan di UI saat status Normal)
       if (prayerState === 'NORMAL') {
         const prayerList = [
           { key: 'imsak', name: 'IMSAK', time: appConfig.prayerTimes.imsak },
@@ -1557,19 +1552,16 @@
       await fetchAladhanAPI(); 
       await fetchWeatherAPI(); 
 
-      // Panggil fungsi save yang baru
       const result = await saveConfigToJSONBin();
 
       if (result.success) {
         statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-green-900/80 text-green-200 border border-green-500 block";
         statusMsg.innerText = "✓ Berhasil tersimpan dan tersinkron ke semua perangkat!";
         
-        // Hanya tutup modal otomatis jika berhasil
         setTimeout(() => {
           closeSettingsModal();
         }, 1500);
       } else {
-        // Tampilkan pesan error spesifik jika gagal
         statusMsg.className = "mb-4 p-2.5 rounded-md text-xs font-bold text-center bg-red-900/80 text-red-200 border border-red-500 block";
         statusMsg.innerText = `⚠ Error Server: ${result.message}`;
       }
@@ -1581,6 +1573,7 @@
       updateClocks();
     }
 
+    // --- DIPERBAIKI: Navigasi TV & Presisi Scrolling Kontainer Pengaturan ---
     function setupTVNavigation() {
       document.addEventListener('keydown', function(e) {
         const modal = document.getElementById('settings-modal');
@@ -1653,7 +1646,17 @@
 
           if (bestCandidate) {
             bestCandidate.focus();
-            bestCandidate.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Memastikan elemen aktif digulirkan secara halus di dalam wadah modal ber-scroll
+            const scrollContainer = bestCandidate.closest('.overflow-y-auto');
+            if (scrollContainer) {
+              const cRect = scrollContainer.getBoundingClientRect();
+              const bRect = bestCandidate.getBoundingClientRect();
+              if (bRect.bottom > cRect.bottom || bRect.top < cRect.top) {
+                bestCandidate.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+            } else {
+              bestCandidate.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
           }
         }
       });
@@ -1675,7 +1678,6 @@
       setInterval(fetchWeatherAPI, 1000 * 60 * 30); 
       setInterval(syncGoogleTime, 1000 * 60 * 30);
       
-      // Sinkronisasi otomatis ke server tiap 5 menit (300000ms) agar tidak melanggar limit API
       setInterval(() => {
         const modal = document.getElementById('settings-modal');
         if (modal.classList.contains('hidden')) {
